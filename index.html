@@ -1,0 +1,1146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>SENTINEL Memphis Watch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css'">
+<style>
+/* Layout: full-height console. Header, optional stale-data banner, three columns
+   (filters + scanner | map | incident feed), stats + ticker footer.
+   Phones: one pane at a time, switched by the bottom tab bar. */
+:root{
+  color-scheme: dark;
+  --bg:#05070a; --panel:#0b0f14; --panel-2:#10161d; --edge:#1d2a35; --edge-hot:#2c4254;
+  --hud:#ffc928;        /* chrome, focus, links */
+  --alarm:#ff3b3b;      /* critical, panel corner brackets */
+  --amber:#ff9f1c;      /* elevated, warnings */
+  --std:#4fc3ff;        /* standard incidents */
+  --ok:#52f2b5;
+  --text:#d7e6ee; --muted:#7a909e;
+  --f-display:'Chakra Petch','Segoe UI',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:13px/1.45 var(--f-mono);overflow:hidden}
+button,a.btn{font:600 11px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--hud);background:transparent;border:1px solid var(--hud);padding:9px 12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+button:hover,a.btn:hover{background:rgba(255,201,40,.12)}
+button:disabled{opacity:.5;cursor:progress}
+button.alert{color:var(--alarm);border-color:var(--alarm)}
+:focus-visible{outline:2px solid var(--hud);outline-offset:2px}
+h1,h2,h3,h4,p{margin:0}
+
+#app{height:100%;display:flex;flex-direction:column;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+
+/* header */
+#top{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--edge);background:linear-gradient(180deg,#0a1016,#06090d);flex-wrap:wrap;padding-top:max(10px,env(safe-area-inset-top))}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.emblem{width:40px;height:24px;position:relative;flex:none}
+.emblem span{position:absolute;top:2px;width:16px;height:11px;background:var(--hud);box-shadow:0 0 10px var(--hud),0 0 24px rgba(255,201,40,.45);clip-path:polygon(0 40%,70% 0,100% 30%,40% 100%)}
+.emblem .l{left:0}.emblem .r{right:0;transform:scaleX(-1)}
+.name{font:700 20px/1 var(--f-display);letter-spacing:.22em;color:var(--hud);text-shadow:0 0 14px rgba(255,201,40,.5)}
+.sub{font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-top:4px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.stat{display:flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid var(--edge);background:var(--panel);font-size:11px;color:var(--muted)}
+.stat b{color:var(--text);font-weight:500}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.stat.ok .dot{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.stat.warn .dot{background:var(--amber);box-shadow:0 0 8px var(--amber)}
+.stat.bad .dot{background:var(--alarm);box-shadow:0 0 8px var(--alarm)}
+.stat.busy .dot{background:var(--hud);box-shadow:0 0 8px var(--hud);animation:blink 1s infinite}
+#clock{color:var(--hud);font-variant-numeric:tabular-nums}
+.tools{display:flex;gap:8px}
+#stale{padding:9px 16px;background:rgba(255,61,82,.12);border-bottom:1px solid var(--alarm);color:#ffc1c9;font-size:12px}
+#stale strong{color:#fff}
+#stale.warn{background:rgba(255,176,32,.1);border-color:var(--amber);color:#ffe1a8}
+
+/* main grid */
+#main{flex:1;min-height:0;display:grid;grid-template-columns:304px minmax(0,1fr) 364px;grid-template-rows:minmax(0,1fr)}
+.rail{overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:10px;background:#070a0e;min-height:0;min-width:0}
+#left{border-right:1px solid var(--edge)}
+#right{border-left:1px solid var(--edge)}
+.panel{position:relative;background:linear-gradient(180deg,rgba(16,22,29,.96),rgba(9,13,18,.96));border:1px solid var(--edge);padding:12px 14px}
+.panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--alarm);pointer-events:none}
+.panel::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.panel::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.cap{font:600 11px/1 var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--hud);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cap em{font-style:normal;color:var(--muted);letter-spacing:.06em;font-family:var(--f-mono);font-weight:400}
+.muted{color:var(--muted);font-size:11.5px}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+/* controls */
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--edge-hot)}
+.seg button{border:0;border-right:1px solid var(--edge-hot);clip-path:none;padding:9px 0;color:var(--muted)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--hud);color:#031014}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:7px;clip-path:none;border:1px solid var(--edge-hot);color:var(--text);padding:8px 10px;letter-spacing:.08em;text-transform:none;font:500 11px var(--f-mono)}
+.chip i{width:9px;height:9px;border-radius:50%;flex:none}
+.chip b{color:var(--muted);font-weight:400}
+.chip[aria-pressed="false"]{opacity:.38}
+.types{display:flex;flex-direction:column;gap:4px;max-height:236px;overflow-y:auto;padding-right:2px}
+.type{clip-path:none;justify-content:space-between;text-align:left;text-transform:none;letter-spacing:0;font:500 11px var(--f-mono);color:var(--text);border-color:var(--edge);padding:7px 9px;width:100%}
+.type b{color:var(--muted);font-weight:400}
+.type[aria-pressed="false"]{opacity:.35;text-decoration:line-through}
+.tiny{font-size:10.5px;color:var(--muted);margin-top:8px}
+#scanHost iframe{width:100%;height:200px;border:1px solid var(--edge-hot);background:#000;margin-top:10px}
+#spark svg{width:100%;height:auto;display:block;color:var(--hud)}
+dl.diag{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:11px;margin:10px 0 0}
+dl.diag dt{color:var(--muted)}dl.diag dd{margin:0;text-align:right;overflow-wrap:anywhere}
+select{background:var(--panel-2);color:var(--text);border:1px solid var(--edge-hot);padding:7px;font:11px var(--f-mono);width:100%;margin-top:6px}
+summary{cursor:pointer;font:600 11px var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--hud)}
+
+/* map */
+#mapwrap{position:relative;min-width:0;min-height:0;background:#03050a}
+#map{position:absolute;inset:0;background:#03050a}
+#mapwrap::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:500;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%),repeating-linear-gradient(to bottom,rgba(255,201,40,.03) 0,rgba(255,201,40,.03) 1px,transparent 1px,transparent 3px)}
+#coords{position:absolute;left:12px;bottom:10px;z-index:600;font-size:10.5px;color:var(--hud);background:rgba(5,7,10,.78);padding:4px 8px;border:1px solid var(--edge);pointer-events:none}
+.mapmsg{position:absolute;z-index:700;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 32px));background:var(--panel);border:1px solid var(--alarm);padding:18px}
+.mapmsg h3{font:700 14px var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--alarm);margin-bottom:8px}
+.mapmsg p{color:var(--text);margin-bottom:12px}
+.pop h4{font:700 15px var(--f-display);letter-spacing:.06em;margin:6px 0 2px}
+.pop dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:8px 0 0;font-size:11px}
+.pop dt{color:var(--muted)}.pop dd{margin:0}
+.pop .note{margin-top:8px;padding-top:8px;border-top:1px solid var(--edge);color:var(--muted);font-size:11px}
+.ring{width:38px;height:38px;border:2px solid var(--hud);border-radius:50%;box-shadow:0 0 16px var(--hud);animation:ping 1.6s ease-out infinite}
+@keyframes ping{0%{transform:scale(.55);opacity:1}100%{transform:scale(1.3);opacity:0}}
+@keyframes blink{50%{opacity:.25}}
+
+/* feed */
+#feedHead{padding:12px 14px 0}
+#feed{display:flex;flex-direction:column;gap:8px}
+.card{position:relative;border:1px solid var(--edge);background:var(--panel);padding:10px 12px 10px 14px;cursor:pointer;display:block;width:100%;text-align:left;text-transform:none;letter-spacing:0;clip-path:none;font:400 12px/1.45 var(--f-mono);color:var(--text)}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--std)}
+.card.crit::before{background:var(--alarm)}.card.elev::before{background:var(--amber)}
+.card:hover{background:var(--panel-2);border-color:var(--edge-hot)}
+.card[aria-pressed="true"]{border-color:var(--hud);box-shadow:0 0 0 1px var(--hud) inset}
+.c-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:5px}
+.pill{font:600 10px var(--f-display);letter-spacing:.14em;text-transform:uppercase;padding:3px 7px;border:1px solid currentColor}
+.pill.crit{color:var(--alarm)}.pill.elev{color:var(--amber)}.pill.std{color:var(--std)}
+.c-ago{color:var(--muted);font-size:11px}
+.card h3{font:700 15px/1.2 var(--f-display);letter-spacing:.05em}
+.c-place{margin-top:3px}
+.c-place.dim{color:var(--muted)}
+.c-meta{margin-top:6px;color:var(--muted);font-size:11px}
+.c-note{margin-top:6px;color:#9db3c0;font-size:11px}
+#more{align-self:center}
+.empty{color:var(--muted);padding:18px 4px;line-height:1.6}
+
+/* footer */
+#bar{display:flex;gap:10px;align-items:stretch;border-top:1px solid var(--edge);background:#06090d;padding:8px 16px;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+.tiles{display:flex;gap:8px}
+.tile{padding:6px 12px;border:1px solid var(--edge);background:var(--panel);min-width:84px}
+.tile b{display:block;font:700 20px/1.1 var(--f-display);color:var(--hud);font-variant-numeric:tabular-nums}
+.tile span{font-size:9.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.ticker{flex:1;min-width:0;display:flex;align-items:center;gap:10px;overflow:hidden;border:1px solid var(--edge);background:var(--panel);padding:0 10px}
+.ticker .tag{font:700 10px var(--f-display);letter-spacing:.16em;background:var(--alarm);color:#12060a;padding:4px 8px;flex:none}
+.ticker .view{overflow:hidden;white-space:nowrap;flex:1}
+#track{display:inline-block;padding-left:100%;animation:scroll 90s linear infinite;font-size:12px}
+#track span{margin-right:36px}
+@keyframes scroll{to{transform:translateX(-100%)}}
+
+#tabs{display:none}
+#toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);z-index:3000;background:var(--panel);border:1px solid var(--hud);color:var(--text);padding:10px 16px;max-width:calc(100% - 32px)}
+
+/* start gate */
+#gate{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at center,#0c1822 0,#04070a 70%)}
+.gatecard{width:min(460px,100%);text-align:center;padding:32px 24px;border:1px solid var(--edge-hot);background:rgba(8,12,17,.92);position:relative}
+.gatecard .emblem{margin:0 auto 14px;transform:scale(1.5)}
+.gatecard h1{font:700 30px var(--f-display);letter-spacing:.3em;color:var(--hud);text-shadow:0 0 20px rgba(255,201,40,.5)}
+.gatecard p{margin:10px 0}
+#gateStatus{color:var(--hud);font-size:12px;min-height:18px;margin:16px 0}
+.gatecard .btnrow{justify-content:center}
+
+@media (max-width:900px){
+  #stale{cursor:pointer;font-size:11.5px;padding:8px 12px}
+  #stale:not(.open) .more{display:none}
+  #stale:not(.open)::after{content:" Tap for details.";color:var(--hud)}
+  .name{font-size:17px}
+  .sub,#chipNewest,#chipClock{display:none}
+  #top{gap:8px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top))}
+  #main{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr)}
+  #left,#right,#mapwrap{grid-area:1/1;border:0}
+  #left,#right{display:none}
+  #mapwrap{visibility:hidden}
+  body[data-view="map"] #mapwrap{visibility:visible}
+  body[data-view="feed"] #right{display:flex}
+  body[data-view="filters"] #left,body[data-view="radio"] #left{display:flex}
+  body[data-view="radio"] #left>.panel:not(#scanner){display:none}
+  body[data-view="filters"] #scanner{display:none}
+  #bar{flex-wrap:wrap;padding:6px 12px}
+  .tiles{width:100%}.tile{flex:1;min-width:0;padding:5px 8px}
+  .ticker{min-height:30px}
+  #tabs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--edge);background:#06090d;padding-bottom:env(safe-area-inset-bottom)}
+  #tabs button{clip-path:none;border:0;border-right:1px solid var(--edge);padding:14px 0;color:var(--muted)}
+  #tabs button:last-child{border-right:0}
+  #tabs button[aria-pressed="true"]{color:#031014;background:var(--hud)}
+  #toast{bottom:120px}
+}
+@media (prefers-reduced-motion:reduce){
+  #track{animation:none;padding-left:0}.ticker .view{overflow-x:auto}
+  .ring,.stat.busy .dot{animation:none}
+}
+
+/* ===== batcave skin + 3D map ===== */
+:root{--rock:#06080c;--steel:#8aa2b4}
+body{background:#04060a}
+#top{background:
+  linear-gradient(90deg,transparent 0,transparent 0) ,
+  repeating-linear-gradient(135deg,var(--hud) 0 9px,#07090d 9px 18px) bottom/100% 4px no-repeat,
+  radial-gradient(ellipse 420px 150px at 9% -10%,rgba(255,201,40,.2),transparent 70%),
+  radial-gradient(ellipse 520px 160px at 62% -30%,rgba(120,170,220,.12),transparent 70%),
+  var(--noise),linear-gradient(180deg,#0b1118,#05080c);
+  border-bottom:0;padding-bottom:14px}
+:root{--noise:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.011 .019' numOctaves='5' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .66 0 0 0 0 .78 .55 0 0 0 -.2'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23n)'/%3E%3C/svg%3E")}
+.rail{background:var(--noise),linear-gradient(180deg,#080b10,#05070a)}
+#bar{background:var(--noise),#05070a}
+.emblem{width:34px;height:34px;border:2px solid var(--hud);border-radius:50%;box-shadow:0 0 14px rgba(255,201,40,.55),inset 0 0 10px rgba(255,201,40,.25);position:relative}
+.emblem::before,.emblem::after{content:"";position:absolute;background:var(--hud)}
+.emblem::before{left:50%;top:-6px;bottom:-6px;width:2px;transform:translateX(-50%)}
+.emblem::after{top:50%;left:-6px;right:-6px;height:2px;transform:translateY(-50%)}
+.emblem span{display:none}
+.gatecard .emblem{transform:scale(1.4);margin:8px auto 22px}
+.name{text-shadow:0 0 16px rgba(255,201,40,.55)}
+.panel::before,.panel::after{border-color:var(--hud)}
+.panel{box-shadow:0 0 0 1px rgba(0,0,0,.6),inset 0 0 30px rgba(0,0,0,.35)}
+#mapwrap{box-shadow:inset 0 0 0 1px var(--edge-hot)}
+#map{background:radial-gradient(ellipse 80% 55% at 50% 0%,#24384b 0,#0d1620 40%,#05070a 78%)}
+#mapwrap::after{z-index:2;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.6) 100%)}
+.maplibregl-ctrl button,.maplibregl-popup button{padding:0;border:0;clip-path:none;letter-spacing:0;text-transform:none;font:inherit;display:block;gap:0}
+.maplibregl-ctrl-group{background:var(--panel)!important;border:1px solid var(--edge-hot);border-radius:0!important;box-shadow:none!important}
+.maplibregl-ctrl-group button{width:34px;height:34px;background-color:transparent}
+.maplibregl-ctrl-group button+button{border-top:1px solid var(--edge-hot)}
+.maplibregl-ctrl button:not(:disabled):hover{background-color:rgba(255,201,40,.14)!important}
+.maplibregl-ctrl-icon{filter:invert(1) sepia(1) saturate(5) hue-rotate(2deg) brightness(.95)}
+.maplibregl-ctrl-attrib{background:rgba(5,7,10,.82)!important;color:var(--muted)!important;font:10px var(--f-mono)!important}
+.maplibregl-ctrl-attrib a{color:var(--hud)!important}
+.maplibregl-ctrl-attrib-button{background-color:transparent!important;filter:invert(1)}
+.maplibregl-popup-content{background:var(--panel-2)!important;color:var(--text);border:1px solid var(--hud);border-radius:0!important;box-shadow:0 0 28px rgba(0,0,0,.8),0 0 0 1px #000;padding:12px 14px!important;font:12px/1.45 var(--f-mono);min-width:220px}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--hud)!important}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--hud)!important}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:var(--hud)!important}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:var(--hud)!important}
+.maplibregl-popup-close-button{color:var(--muted)!important;font-size:20px!important;padding:2px 8px!important;background:transparent!important}
+.ring-wrap{width:38px;height:38px;pointer-events:none}
+#mbar{position:absolute;z-index:5;left:10px;right:58px;top:10px;display:flex;flex-wrap:wrap;gap:6px 14px;pointer-events:none}
+.mgrp{display:flex;gap:4px;align-items:center;pointer-events:auto;background:rgba(5,8,12,.78);border:1px solid var(--edge-hot);padding:4px 6px;backdrop-filter:blur(3px)}
+.mlab{font:600 9px var(--f-display);letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.mb{padding:7px 9px!important;font-size:10px!important;border-color:var(--edge-hot)!important;color:var(--text)!important;clip-path:none!important}
+.mb:hover{border-color:var(--hud)!important}
+.mb[aria-pressed="true"]{background:var(--hud);color:#0a0c10!important;border-color:var(--hud)!important}
+#legend{position:absolute;z-index:5;left:12px;bottom:36px;display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--steel);background:rgba(5,8,12,.78);border:1px solid var(--edge);padding:5px 9px;pointer-events:none;max-width:calc(100% - 24px)}
+#legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+#legend i.sh{border-radius:0;width:14px;height:0;border-top:2px solid var(--hud);vertical-align:3px;box-shadow:0 0 6px var(--hud)}
+#coords{z-index:5;bottom:10px}
+@media (max-width:900px){
+  #mbar{flex-wrap:nowrap;overflow-x:auto;right:10px;top:8px;padding-bottom:2px;pointer-events:auto}
+  .mgrp{flex:none}
+  .maplibregl-ctrl-top-right{top:46px}
+  #legend{display:none}
+}
+</style>
+</head>
+<body data-view="map">
+
+<div id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <div class="gatecard">
+    <div class="emblem" aria-hidden="true"></div>
+    <h1 id="gateTitle">SENTINEL</h1>
+    <p class="muted">Memphis, Shelby County and the tri-state grid.<br>MPD reports in 3D, plus the police scanner.</p>
+    <div id="gateStatus" aria-live="polite">Linking to city data</div>
+    <div class="btnrow">
+      <button id="engage">Engage with sound</button>
+      <button id="silent">Enter silent</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <header id="top">
+    <div class="brand">
+      <div class="emblem" aria-hidden="true"></div>
+      <div><div class="name">SENTINEL</div><div class="sub">Memphis · Shelby County · TN / MS / AR grid</div></div>
+    </div>
+    <div class="chips">
+      <div class="stat busy" id="chipLink"><i class="dot"></i><b id="linkText">Linking</b></div>
+      <div class="stat" id="chipFresh"><i class="dot"></i><span>City data updated <b id="freshText">checking</b></span></div>
+      <div class="stat" id="chipNewest"><span>Newest record <b id="newestText">n/a</b></span></div>
+      <div class="stat" id="chipClock"><span id="clock">--:--:--</span></div>
+    </div>
+    <div class="tools">
+      <button id="refreshBtn" data-sfx="refresh">Refresh</button>
+      <button id="soundBtn" aria-pressed="true">Sound on</button>
+    </div>
+  </header>
+  <div id="stale" hidden></div>
+
+  <main id="main">
+    <aside id="left" class="rail" aria-label="Scanner and filters">
+      <section class="panel" id="scanner">
+        <h2 class="cap">Police scanner <em>feed 215</em></h2>
+        <p class="muted">Live Memphis Police and Shelby County Sheriff dispatch from Broadcastify: the nine MPD precinct stations plus Sheriff uniform patrol.</p>
+        <div class="btnrow">
+          <a class="btn" id="tune" href="https://www.broadcastify.com/webPlayer/215" target="_blank" rel="noopener">Listen live ↗</a>
+          <a class="btn" href="https://www.broadcastify.com/listen/ctid/2506" target="_blank" rel="noopener">All Shelby feeds ↗</a>
+        </div>
+        <p class="tiny">Broadcastify does not allow its player to be embedded in other pages, so Listen live opens a small player window that keeps playing while you use the map. An ad plays first unless you have Premium. Radio is real time. The map is not.</p>
+      </section>
+
+      <section class="panel">
+        <h2 class="cap">Time window <em id="windowNote">ends at newest record</em></h2>
+        <div class="seg" id="winSeg" role="group" aria-label="Time window">
+          <button data-d="1" aria-pressed="false">24H</button>
+          <button data-d="3" aria-pressed="false">3D</button>
+          <button data-d="7" aria-pressed="false">7D</button>
+          <button data-d="14" aria-pressed="true">14D</button>
+          <button data-d="30" aria-pressed="false">30D</button>
+        </div>
+        <p class="tiny" id="rangeNote">Windows count back from the newest record the city has published, not from today.</p>
+      </section>
+
+      <section class="panel">
+        <h2 class="cap">Severity</h2>
+        <div class="row" id="sevRow">
+          <button class="chip" data-sev="crit" aria-pressed="true"><i style="background:var(--alarm)"></i>Critical <b id="nCrit">0</b></button>
+          <button class="chip" data-sev="elev" aria-pressed="true"><i style="background:var(--amber)"></i>Elevated <b id="nElev">0</b></button>
+          <button class="chip" data-sev="std" aria-pressed="true"><i style="background:var(--std)"></i>Standard <b id="nStd">0</b></button>
+        </div>
+        <div class="row" style="margin-top:8px"><button class="chip" id="partOne" aria-pressed="false"><i style="background:var(--text)"></i>Part I only (serious offenses)</button></div>
+      </section>
+
+      <section class="panel">
+        <h2 class="cap">Offense types <em id="typeCount"></em></h2>
+        <div class="types" id="types"></div>
+        <div class="btnrow"><button id="typesAll">All on</button><button id="typesNone">All off</button></div>
+      </section>
+
+      <section class="panel">
+        <h2 class="cap">3D map</h2>
+        <p class="muted">Right-click and drag (or two fingers on a phone) to tilt and rotate. Use the bar on the map for camera presets and layers: pins, tall beams, heat, and density towers.</p>
+        <p class="tiny">Pins are approximate. The city rounds each location to the hundred block.</p>
+      </section>
+
+      <section class="panel" id="spark">
+        <h2 class="cap">Daily volume <em id="sparkMax"></em></h2>
+        <div id="sparkBox"></div>
+      </section>
+
+      <section class="panel">
+        <details>
+          <summary>Data check</summary>
+          <dl class="diag" id="diag"></dl>
+          <label class="tiny" for="basisSel" style="display:block;margin-top:10px">Time basis (change if night incidents show at midday)</label>
+          <select id="basisSel">
+            <option value="auto">Auto-detect</option>
+            <option value="wall">Stored times are Central clock times</option>
+            <option value="instant">Stored times are exact UTC instants</option>
+          </select>
+        </details>
+      </section>
+    </aside>
+
+    <section id="mapwrap" aria-label="3D incident map">
+      <div id="map"></div>
+      <div id="mbar" role="toolbar" aria-label="Map controls">
+        <div class="mgrp" role="group" aria-label="Camera">
+          <span class="mlab">Camera</span>
+          <button class="mb" data-go="tri" data-sfx="select">Tri-state</button>
+          <button class="mb" data-go="shelby" data-sfx="select">Shelby</button>
+          <button class="mb" data-go="down" data-sfx="select">Downtown</button>
+          <button class="mb" data-go="top" data-sfx="select">Top-down</button>
+          <button class="mb" data-go="fit" data-sfx="select">Fit pins</button>
+          <button class="mb" id="orbitBtn" aria-pressed="false" data-sfx="none">Orbit</button>
+        </div>
+        <div class="mgrp" role="group" aria-label="Layers">
+          <span class="mlab">Layers</span>
+          <button class="mb" data-layer="pins" aria-pressed="true" data-sfx="none">Pins</button>
+          <button class="mb" data-layer="beams" aria-pressed="true" data-sfx="none">Beams</button>
+          <button class="mb" data-layer="heat" aria-pressed="false" data-sfx="none">Heat</button>
+          <button class="mb" data-layer="towers" aria-pressed="false" data-sfx="none">Towers</button>
+        </div>
+      </div>
+      <div id="legend"><span><i style="background:#ff3b3b"></i>Critical</span><span><i style="background:#ff9f1c"></i>Elevated</span><span><i style="background:#4fc3ff"></i>Standard</span><span><i class="sh"></i>Shelby County line</span></div>
+      <div id="coords">35.1495 N · 90.0490 W</div>
+      <div class="mapmsg" id="mapMsg" hidden>
+        <h3 id="mapMsgTitle">Link down</h3>
+        <p id="mapMsgBody"></p>
+        <button id="retryBtn">Retry</button>
+      </div>
+    </section>
+
+    <aside id="right" class="rail" aria-label="Incident feed">
+      <div id="feedHead" class="cap" style="margin:0;padding:6px 4px 0">Incident stream <em id="feedCount">0</em></div>
+      <div id="feed" aria-live="polite"><div class="empty">Linking to city data</div></div>
+    </aside>
+  </main>
+
+  <footer id="bar">
+    <div class="tiles">
+      <div class="tile"><b id="tIn">0</b><span>In view</span></div>
+      <div class="tile"><b id="tCrit">0</b><span>Critical</span></div>
+      <div class="tile"><b id="tPart">0</b><span>Part I</span></div>
+      <div class="tile"><b id="tUnm">0</b><span>No location</span></div>
+    </div>
+    <div class="ticker"><span class="tag">LATEST</span><div class="view"><div id="track"></div></div></div>
+  </footer>
+  <nav id="tabs" aria-label="Views">
+    <button data-view="map" aria-pressed="true">Map</button>
+    <button data-view="feed" aria-pressed="false">Feed</button>
+    <button data-view="filters" aria-pressed="false">Filters</button>
+    <button data-view="radio" aria-pressed="false">Radio</button>
+  </nav>
+</div>
+<div id="toast" role="status" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
+<script>if(typeof maplibregl==='undefined'){document.write('<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.js"><\/script>');}</script>
+<script>
+(function(){
+'use strict';
+
+/*PURE-START*/
+const CHI='America/Chicago';
+const BOUNDS={s:34.95,n:35.45,w:-90.40,e:-89.55};   // Shelby County, with margin
+const esc=(v)=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function clean(v){return v==null?'':String(v).trim();}
+function titleCase(s){return String(s||'').toLowerCase().replace(/(^|[\s\/\-(])([a-z])/g,(m,a,b)=>a+b.toUpperCase()).replace(/\bDui\b/,'DUI').replace(/\bTn\b/,'TN');}
+function num(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
+function epoch(v){if(v===null||v===undefined||v==='')return null;const ms=typeof v==='number'?v:Date.parse(v);if(!Number.isFinite(ms))return null;if(ms<9.46e11||ms>Date.now()+2*864e5)return null;return ms;}
+function inBounds(lat,lon){return lat!==null&&lon!==null&&lat>=BOUNDS.s&&lat<=BOUNDS.n&&lon>=BOUNDS.w&&lon<=BOUNDS.e;}
+
+const CRIT_RE=/homicide|murder|manslaughter|aggravated|agg\.? ?assault|robbery|carjack|kidnap|abduct|arson|shooting|stabbing|weapon|firearm|rape|sexual|human traffick|shots? fired/i;
+const ELEV_RE=/burglar|theft|larceny|stolen|shoplift|vandal|destruction|damage|fraud|forgery|counterfeit|embezzl|extort|drug|narcotic|assault|trespass/i;
+function severityOf(r){const t=`${r.desc||''} ${r.cat||''} ${r.grp||''}`;if(CRIT_RE.test(t))return'crit';if(ELEV_RE.test(t))return'elev';return'std';}
+function typeKey(r){return r.desc||r.cat||r.grp||'Unclassified';}
+function partLabel(p){return p===1?'Part I':p===2?'Part II':'';}
+
+const NOTES=[
+ [/homicide|murder|manslaughter/i,'A death investigated as a homicide.'],
+ [/agg\w*\.?\s*assault|aggravated/i,'An attack involving a weapon or serious injury.'],
+ [/carjack/i,'A vehicle taken from a person by force or threat.'],
+ [/robbery/i,'Property taken from a person by force or threat.'],
+ [/burglar|breaking/i,'Unlawful entry to commit a theft or other crime.'],
+ [/motor vehicle|auto theft|vehicle theft/i,'A vehicle reported stolen.'],
+ [/theft|larceny|shoplift|stolen/i,'Property taken without force or forced entry.'],
+ [/vandal|destruction|damage/i,'Property damaged or destroyed.'],
+ [/assault/i,'An attack without a weapon or serious injury.'],
+ [/arson/i,'A fire set on purpose.'],
+ [/kidnap|abduct/i,'A person unlawfully taken or held.'],
+ [/weapon|firearm|shots? fired/i,'A weapons law violation.'],
+ [/drug|narcotic/i,'A drug-related offense.'],
+ [/fraud|forgery|counterfeit|embezzl/i,'Deception or falsified documents for gain.'],
+ [/trespass/i,'Entering or staying on property without permission.'],
+ [/dui|driving under/i,'Driving while impaired.'],
+ [/disorderly|disturb/i,'Disruptive public behavior.']
+];
+function plainNote(r){const t=`${r.desc||''} ${r.cat||''} ${r.grp||''}`;for(const [re,s] of NOTES){if(re.test(t))return s;}return'';}
+function placeText(r){
+  const st=r.street?titleCase(r.street):'';
+  if(r.block>0&&st)return `${r.block} block of ${st}`;
+  if(r.addr)return titleCase(r.addr);
+  return st;
+}
+function resolveFields(fields){
+  const names=(fields||[]).map(f=>f.name);
+  const pick=(...res)=>{for(const re of res){const m=names.find(n=>re.test(n));if(m)return m;}return null;};
+  return {
+    id:pick(/^crime_?id$/i,/^source_?objectid$/i),
+    off:pick(/^offense_?date_?time$/i,/offense.*(date|time)/i),
+    rep:pick(/^reported_?date_?time$/i,/report.*(date|time)/i),
+    cat:pick(/^ucr_?category$/i,/category/i),
+    desc:pick(/^ucr_?description$/i,/description/i,/^nibrs_?offense_?group$/i),
+    grp:pick(/^nibrs_?offense_?group$/i,/^nibrs_?group$/i),
+    part:pick(/^part_?one_?or_?part_?two$/i,/^part/i),
+    block:pick(/^block$/i),
+    street:pick(/^street_?name$/i),
+    addr:pick(/^full_?address$/i,/^street_?address$/i),
+    lat:pick(/^latitude$/i),
+    lon:pick(/^longitude$/i),
+    prec:pick(/^precinct$/i),
+    ward:pick(/^ward$/i)
+  };
+}
+function normalizeRecord(feat,F,oidName){
+  const a=(feat&&feat.attributes)||{};const g=feat&&feat.geometry;
+  let lat=F.lat?num(a[F.lat]):null,lon=F.lon?num(a[F.lon]):null;
+  if(!inBounds(lat,lon)&&g){const gy=num(g.y),gx=num(g.x);if(inBounds(gy,gx)){lat=gy;lon=gx;}}
+  const mapped=inBounds(lat,lon);
+  const off=F.off?epoch(a[F.off]):null,rep=F.rep?epoch(a[F.rep]):null;
+  const t=off!==null?off:rep;
+  if(t===null)return null;
+  const idRaw=(F.id&&a[F.id]!=null&&a[F.id]!=='')?a[F.id]:a[oidName];
+  const bn=F.block?num(a[F.block]):null;
+  const r={
+    id:String(idRaw!=null?idRaw:`${t}-${lat}-${lon}`),t,off,rep,
+    cat:F.cat?clean(a[F.cat]):'',desc:F.desc?clean(a[F.desc]):'',grp:F.grp?clean(a[F.grp]):'',
+    part:F.part?num(a[F.part]):null,block:bn>0?bn:null,
+    street:F.street?clean(a[F.street]):'',addr:F.addr?clean(a[F.addr]):'',
+    prec:F.prec?clean(a[F.prec]):'',ward:F.ward?clean(a[F.ward]):'',
+    lat:mapped?lat:null,lon:mapped?lon:null,mapped
+  };
+  r.sev=severityOf(r);r.key=typeKey(r);
+  return r;
+}
+function fmtSql(ms){return new Date(ms).toISOString().slice(0,19).replace('T',' ');}
+function buildWhere(F,sinceMs){
+  const s=fmtSql(sinceMs),p=[];
+  if(F.off)p.push(`${F.off} >= timestamp '${s}'`);
+  if(F.rep)p.push(`${F.rep} >= timestamp '${s}'`);
+  return p.length?p.join(' OR '):'1=1';
+}
+const dtfCache={};
+function dtf(key,opts){return dtfCache[key]||(dtfCache[key]=new Intl.DateTimeFormat('en-US',opts));}
+function hourIn(ms,tz){return Number(dtf('h'+tz,{hour:'numeric',hourCycle:'h23',timeZone:tz}).format(ms))%24;}
+function tzOffsetMs(ms,tz){
+  const parts=dtf('p'+tz,{year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',hourCycle:'h23',timeZone:tz}).formatToParts(ms);
+  const g={};for(const p of parts)g[p.type]=Number(p.value);
+  return Date.UTC(g.year,g.month-1,g.day,g.hour%24,g.minute,g.second)-Math.floor(ms/1000)*1000;
+}
+function wallToInstant(wallMs,tz){
+  tz=tz||CHI;
+  const guess=wallMs-tzOffsetMs(wallMs,tz);
+  return wallMs-tzOffsetMs(guess,tz);
+}
+function detectBasis(recs){
+  const sample=[];
+  for(const r of recs){const x=r.off;if(x==null)continue;if(x%86400000===0)continue;sample.push(x);if(sample.length>=6000)break;}
+  const n=sample.length;
+  if(n<200)return{basis:'wall',confident:false,n,wallShare:null,instShare:null};
+  let w=0,i=0;
+  for(const x of sample){const hw=hourIn(x,'UTC'),hi=hourIn(x,CHI);if(hw>=2&&hw<=6)w++;if(hi>=2&&hi<=6)i++;}
+  const ws=w/n,is=i/n;
+  if(Math.abs(ws-is)<0.01)return{basis:'wall',confident:false,n,wallShare:ws,instShare:is};
+  return{basis:ws<is?'wall':'instant',confident:true,n,wallShare:ws,instShare:is};
+}
+/*PURE-END*/
+/* ---------- sound ---------- */
+const Sound=(()=>{
+  let ctx=null,master=null,on=true;
+  try{on=localStorage.getItem('sentinel.sound')!=='off';}catch(e){}
+  function ensure(){
+    if(!ctx){
+      const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+      ctx=new AC();master=ctx.createGain();master.gain.value=.4;master.connect(ctx.destination);
+    }
+    if(ctx.state==='suspended')ctx.resume();
+    return ctx;
+  }
+  function tone(o){
+    if(!on)return;const c=ensure();if(!c)return;
+    const f=o.f||800,t=o.t||.06,v=o.v||.2,d=o.d||0,now=c.currentTime+d;
+    const osc=c.createOscillator(),g=c.createGain();
+    osc.type=o.type||'square';osc.frequency.setValueAtTime(f,now);
+    if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,now+t);
+    g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(v,now+.006);g.gain.exponentialRampToValueAtTime(.0001,now+t);
+    osc.connect(g);g.connect(master);osc.start(now);osc.stop(now+t+.03);
+  }
+  const P={
+    click:()=>tone({f:2000,f2:1100,t:.035,v:.11}),
+    tick:()=>tone({f:1400,t:.02,v:.06,type:'sine'}),
+    on:()=>{tone({f:700,t:.05,type:'sine',v:.2});tone({f:1100,t:.07,type:'sine',v:.2,d:.05});},
+    off:()=>{tone({f:1100,t:.05,type:'sine',v:.2});tone({f:600,t:.07,type:'sine',v:.2,d:.05});},
+    select:()=>{tone({f:520,f2:900,t:.09,type:'triangle',v:.2});tone({f:1400,t:.05,type:'sine',v:.12,d:.08});},
+    refresh:()=>tone({f:300,f2:1800,t:.35,type:'sawtooth',v:.07}),
+    alert:()=>[0,.12,.24].forEach(d=>tone({f:1500,t:.07,type:'square',v:.14,d})),
+    alarm:()=>[0,.22,.44].forEach(d=>tone({f:640,f2:420,t:.18,type:'sawtooth',v:.13,d})),
+    error:()=>tone({f:360,f2:110,t:.4,type:'sawtooth',v:.13}),
+    boot:()=>[400,600,900,1400].forEach((f,i)=>tone({f,t:.09,type:'triangle',v:.17,d:i*.08}))
+  };
+  return{
+    play(n){(P[n]||P.click)();},
+    unlock(){ensure();},
+    get on(){return on;},
+    set(v){on=!!v;try{localStorage.setItem('sentinel.sound',on?'on':'off');}catch(e){}}
+  };
+})();
+
+/* ---------- state ---------- */
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+const COL={crit:'#ff3b3b',elev:'#ff9f1c',std:'#4fc3ff'};
+const LAB={crit:'Critical',elev:'Elevated',std:'Standard'};
+const SOURCES=[
+  {name:'MPD Public Safety Incidents',url:'https://services2.arcgis.com/saWmpKJIUAjyyNVc/arcgis/rest/services/MPD_Public_Safety_Incidents/FeatureServer/0'},
+  {name:'MPD Public Safety Incidents (Mapping)',url:'https://services2.arcgis.com/saWmpKJIUAjyyNVc/arcgis/rest/services/MPD_Public_Safety_Incidents_Mapping/FeatureServer/0'}
+];
+const CNTY_URL='https://services2.arcgis.com/saWmpKJIUAjyyNVc/arcgis/rest/services/Memphis_MSA_Counties/FeatureServer/0/query';
+const FETCH_DAYS=45,MAX_RECORDS=20000,PAGE=1000,REFRESH_MS=15*60*1000;
+const state={
+  all:[],view:[],byId:new Map(),anchor:Date.now(),days:14,
+  sev:{crit:true,elev:true,std:true},partOne:false,hidden:new Set(),
+  layers:{pins:true,beams:true,heat:false,towers:false},
+  selected:null,shown:300,basisPref:'auto',basis:'wall',basisInfo:null,
+  src:null,lastEdit:null,loading:false,lastLoad:0,diag:{},typeCounts:[],sevCounts:{crit:0,elev:0,std:0},ids:new Set()
+};
+
+/* ---------- time helpers (basis aware) ---------- */
+const tzShow=()=>state.basis==='wall'?'UTC':CHI;
+function fmtTime(ms){if(ms==null)return'';return dtf('fmt'+tzShow(),{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:tzShow()}).format(ms);}
+function fmtInstant(ms){return dtf('inst',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:CHI}).format(ms);}
+function dayKey(ms){return new Intl.DateTimeFormat('en-CA',{year:'numeric',month:'2-digit',day:'2-digit',timeZone:tzShow()}).format(ms);}
+const realInstant=(ms)=>state.basis==='wall'?wallToInstant(ms,CHI):ms;
+function agoFrom(realMs){
+  const d=Date.now()-realMs;if(d<0)return'just now';
+  const m=Math.floor(d/60000);if(m<60)return`${Math.max(m,1)}m ago`;
+  const h=Math.floor(m/60);if(h<48)return`${h}h ago`;
+  return`${Math.floor(h/24)}d ago`;
+}
+const ago=(ms)=>agoFrom(realInstant(ms));
+/* ---------- toast ---------- */
+let toastTimer=null;
+function toast(msg){const el=$('#toast');el.textContent=msg;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.hidden=true;},4500);}
+
+/* ---------- 3D map ---------- */
+const EMPTY={type:'FeatureCollection',features:[]};
+const SHELBY_RING=[[-89.638,35.21],[-89.644,34.995],[-90.291,34.996],[-90.308,34.996],[-90.31,35.001],[-90.305,35.02],[-90.297,35.038],[-90.292,35.041],[-90.266,35.041],[-90.252,35.032],[-90.238,35.032],[-90.207,35.026],[-90.187,35.045],[-90.179,35.06],[-90.175,35.076],[-90.18,35.081],[-90.181,35.094],[-90.175,35.116],[-90.155,35.131],[-90.141,35.133],[-90.107,35.119],[-90.093,35.118],[-90.081,35.123],[-90.066,35.137],[-90.064,35.146],[-90.068,35.156],[-90.101,35.171],[-90.108,35.182],[-90.117,35.188],[-90.116,35.199],[-90.108,35.199],[-90.097,35.195],[-90.089,35.212],[-90.08,35.209],[-90.076,35.213],[-90.075,35.22],[-90.091,35.245],[-90.108,35.255],[-90.138,35.252],[-90.149,35.254],[-90.16,35.264],[-90.169,35.28],[-90.164,35.296],[-90.157,35.301],[-90.15,35.303],[-90.139,35.299],[-90.124,35.304],[-90.11,35.305],[-90.095,35.351],[-90.078,35.375],[-90.081,35.386],[-90.062,35.386],[-90.042,35.397],[-89.889,35.391],[-89.8,35.391],[-89.779,35.388],[-89.777,35.405],[-89.731,35.401],[-89.733,35.406],[-89.73,35.407],[-89.71,35.404],[-89.709,35.409],[-89.702,35.409],[-89.703,35.389],[-89.643,35.388],[-89.646,35.371],[-89.637,35.377],[-89.633,35.376],[-89.639,35.257],[-89.638,35.21]];
+const SHELBY_BOUNDS=[[-90.33,34.97],[-89.61,35.43]];
+const VIEWS={
+  tri:{center:[-89.95,35.05],zoom:8.2,pitch:52,bearing:-6},
+  shelby:{bounds:SHELBY_BOUNDS,pitch:56,bearing:-14},
+  down:{center:[-90.052,35.146],zoom:15.1,pitch:67,bearing:-30},
+  top:{center:[-89.97,35.18],zoom:9.7,pitch:0,bearing:0}
+};
+const STATE_ABBR={'47':'TN','28':'MS','05':'AR'};
+const BEAM_H={crit:900,elev:520,std:300};
+const LAYER_IDS={pins:['inc-halo','inc-core'],beams:['inc-beams'],heat:['inc-heat'],towers:['inc-towers']};
+let map=null,mapReady=false,mapDown=false,popup=null,ringMarker=null,orbitOn=false,orbitRaf=0,tileErrs=0,lastCursor=null;
+
+function buildStyle(){
+  const font=['Noto Sans Regular'],fontB=['Noto Sans Bold'];
+  const cls=(...a)=>['match',['get','class'],a,true,false];
+  const sevColor=['match',['get','sev'],'crit',COL.crit,'elev',COL.elev,COL.std];
+  const z=(a,b,c)=>['interpolate',['linear'],['zoom'],8,a,12,b,16,c];
+  const sevR=(c,e,s)=>['match',['get','sev'],'crit',c,'elev',e,s];
+  return{
+    version:8,name:'sentinel-cave',
+    glyphs:'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+    light:{anchor:'viewport',color:'#b8d4ff',intensity:.45,position:[1.2,215,45]},
+    sources:{
+      ofm:{type:'vector',url:'https://tiles.openfreemap.org/planet',attribution:'<a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> © <a href="https://www.openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> Data from <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'},
+      counties:{type:'geojson',data:EMPTY},
+      clabels:{type:'geojson',data:EMPTY},
+      inc:{type:'geojson',data:EMPTY},
+      beams:{type:'geojson',data:EMPTY},
+      grid:{type:'geojson',data:EMPTY}
+    },
+    layers:[
+      {id:'bg',type:'background',paint:{'background-color':'#070a10'}},
+      {id:'landcover',type:'fill',source:'ofm','source-layer':'landcover',paint:{'fill-color':'#0a1410','fill-opacity':.75}},
+      {id:'park',type:'fill',source:'ofm','source-layer':'park',paint:{'fill-color':'#0b1711','fill-opacity':.85}},
+      {id:'landuse',type:'fill',source:'ofm','source-layer':'landuse',filter:cls('industrial','commercial','retail','residential'),paint:{'fill-color':['match',['get','class'],'industrial','#10151d','commercial','#0f1721','retail','#0f1721','#0a0f16'],'fill-opacity':.9}},
+      {id:'water',type:'fill',source:'ofm','source-layer':'water',paint:{'fill-color':'#04121d'}},
+      {id:'waterway',type:'line',source:'ofm','source-layer':'waterway',minzoom:8,paint:{'line-color':'#08263c','line-width':['interpolate',['linear'],['zoom'],8,.5,14,2.2]}},
+      {id:'cnty-veil',type:'fill',source:'counties',filter:['!=',['get','shelby'],true],paint:{'fill-color':'#000000','fill-opacity':.28}},
+      {id:'cnty-shelby-fill',type:'fill',source:'counties',filter:['==',['get','shelby'],true],paint:{'fill-color':'#ffc928','fill-opacity':.06}},
+      {id:'rail',type:'line',source:'ofm','source-layer':'transportation',minzoom:10,filter:cls('rail','transit'),paint:{'line-color':'#2a3947','line-width':1,'line-dasharray':[3,2]}},
+      {id:'road-minor',type:'line',source:'ofm','source-layer':'transportation',minzoom:11.5,filter:cls('minor','service','track'),layout:{'line-cap':'round'},paint:{'line-color':'#1f2d3b','line-width':['interpolate',['exponential',1.5],['zoom'],11.5,.3,16,3.5]}},
+      {id:'road-mid',type:'line',source:'ofm','source-layer':'transportation',minzoom:9,filter:cls('secondary','tertiary'),layout:{'line-cap':'round'},paint:{'line-color':'#41586c','line-width':['interpolate',['exponential',1.5],['zoom'],9,.4,16,5]}},
+      {id:'road-major',type:'line',source:'ofm','source-layer':'transportation',minzoom:6,filter:cls('motorway','trunk','primary'),layout:{'line-cap':'round'},paint:{'line-color':'#c79b1d','line-opacity':.85,'line-width':['interpolate',['exponential',1.5],['zoom'],6,.5,12,1.8,16,7]}},
+      {id:'state-line',type:'line',source:'ofm','source-layer':'boundary',filter:['==',['get','admin_level'],4],paint:{'line-color':'#8aa2b4','line-width':1.3,'line-dasharray':[4,3],'line-opacity':.8}},
+      {id:'cnty-line',type:'line',source:'counties',filter:['!=',['get','shelby'],true],paint:{'line-color':'#5b7a90','line-width':1,'line-dasharray':[3,2],'line-opacity':.8}},
+      {id:'cnty-glow',type:'line',source:'counties',filter:['==',['get','shelby'],true],paint:{'line-color':'#ffc928','line-width':9,'line-blur':7,'line-opacity':.38}},
+      {id:'cnty-shelby',type:'line',source:'counties',filter:['==',['get','shelby'],true],paint:{'line-color':'#ffc928','line-width':['interpolate',['linear'],['zoom'],6,1.4,12,2.8]}},
+      {id:'inc-heat',type:'heatmap',source:'inc',layout:{visibility:'none'},paint:{
+        'heatmap-weight':['match',['get','sev'],'crit',1,'elev',.6,.35],
+        'heatmap-intensity':['interpolate',['linear'],['zoom'],8,.6,14,1.6],
+        'heatmap-radius':['interpolate',['linear'],['zoom'],8,10,12,22,15,38],
+        'heatmap-opacity':.85,
+        'heatmap-color':['interpolate',['linear'],['heatmap-density'],0,'rgba(0,0,0,0)',.2,'rgba(60,90,120,.5)',.45,'rgba(111,160,190,.7)',.7,'rgba(255,201,40,.85)',1,'rgba(255,59,59,.95)']
+      }},
+      {id:'bldg',type:'fill-extrusion',source:'ofm','source-layer':'building',minzoom:13,paint:{
+        'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],6],0,'#141c26',40,'#243547',120,'#3b5469',250,'#6384a0'],
+        'fill-extrusion-height':['coalesce',['get','render_height'],5],
+        'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
+        'fill-extrusion-opacity':.92,'fill-extrusion-vertical-gradient':true}},
+      {id:'inc-towers',type:'fill-extrusion',source:'grid',layout:{visibility:'none'},paint:{
+        'fill-extrusion-color':['interpolate',['linear'],['get','t'],0,'#27465e',.35,'#8a7a2a',.6,'#ffc928',.85,'#ff7a1a',1,'#ff3b3b'],
+        'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':.82,'fill-extrusion-vertical-gradient':true}},
+      {id:'inc-beams',type:'fill-extrusion',source:'beams',paint:{
+        'fill-extrusion-color':sevColor,'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,
+        'fill-extrusion-opacity':.88,'fill-extrusion-vertical-gradient':true}},
+      {id:'inc-halo',type:'circle',source:'inc',layout:{'circle-sort-key':sevR(3,2,1)},paint:{
+        'circle-radius':['interpolate',['linear'],['zoom'],8,sevR(7,5.5,4.5),12,sevR(14,11,9),16,sevR(24,20,16)],
+        'circle-color':sevColor,'circle-opacity':.2,'circle-blur':.9,'circle-pitch-alignment':'map'}},
+      {id:'inc-core',type:'circle',source:'inc',layout:{'circle-sort-key':sevR(3,2,1)},paint:{
+        'circle-radius':['interpolate',['linear'],['zoom'],8,sevR(3.2,2.6,2.1),12,sevR(6,5,4.2),16,sevR(10,8.5,7)],
+        'circle-color':sevColor,'circle-opacity':.95,'circle-stroke-color':'#05070a','circle-stroke-width':1}},
+      {id:'state-label',type:'symbol',source:'clabels',filter:['==',['get','kind'],'state'],maxzoom:9.5,layout:{'text-field':['get','label'],'text-font':fontB,'text-size':26,'text-letter-spacing':.6,'text-allow-overlap':true},paint:{'text-color':'#34495a','text-opacity':.7}},
+      {id:'county-label',type:'symbol',source:'clabels',filter:['==',['get','kind'],'county'],maxzoom:11.5,layout:{'text-field':['get','label'],'text-font':fontB,'text-size':['interpolate',['linear'],['zoom'],6,10,11,13],'text-letter-spacing':.14,'text-allow-overlap':false},paint:{'text-color':['case',['==',['get','shelby'],true],'#ffc928','#8aa2b4'],'text-halo-color':'#05070a','text-halo-width':1.6}},
+      {id:'place-city',type:'symbol',source:'ofm','source-layer':'place',filter:cls('city','town'),layout:{'text-field':['coalesce',['get','name:latin'],['get','name']],'text-font':fontB,'text-size':['interpolate',['linear'],['zoom'],6,10,12,17],'text-transform':'uppercase','text-letter-spacing':.1,'text-max-width':8},paint:{'text-color':'#d3dde5','text-halo-color':'#05070a','text-halo-width':1.7}},
+      {id:'place-small',type:'symbol',source:'ofm','source-layer':'place',minzoom:11,filter:cls('village','suburb','neighbourhood','hamlet'),layout:{'text-field':['coalesce',['get','name:latin'],['get','name']],'text-font':font,'text-size':11,'text-max-width':7},paint:{'text-color':'#8199aa','text-halo-color':'#05070a','text-halo-width':1.4}},
+      {id:'road-label',type:'symbol',source:'ofm','source-layer':'transportation_name',minzoom:13.5,layout:{'symbol-placement':'line','text-field':['coalesce',['get','name:latin'],['get','name']],'text-font':font,'text-size':10,'text-letter-spacing':.05},paint:{'text-color':'#6a8294','text-halo-color':'#05070a','text-halo-width':1.3}}
+    ]
+  };
+}
+
+function initMap(){
+  if(typeof maplibregl==='undefined')throw new Error('The 3D map library could not be downloaded from cdnjs.cloudflare.com or jsDelivr.');
+  const v=VIEWS.tri;
+  map=new maplibregl.Map({container:'map',style:buildStyle(),center:v.center,zoom:v.zoom,pitch:v.pitch,bearing:v.bearing,maxPitch:80,minZoom:4,maxZoom:18.5,attributionControl:false,antialias:true,fadeDuration:120});
+  map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'top-right');
+  map.addControl(new maplibregl.AttributionControl({compact:true}),'bottom-right');
+  map.on('error',e=>{
+    const sid=e&&(e.sourceId||(e.source&&e.source.id));
+    if(sid==='ofm'){tileErrs++;if(tileErrs===8)toast('Map tiles are not loading on this network. Pins and beams still plot, but without streets and buildings.');}
+  });
+  map.on('load',markReady);
+  setTimeout(()=>{if(!mapReady&&map&&map.getSource('inc'))markReady();},7000);
+  const hud=()=>{
+    const c=map.getCenter(),cur=lastCursor||c;
+    $('#coords').textContent=`${Math.abs(cur.lat).toFixed(4)} ${cur.lat>=0?'N':'S'} · ${Math.abs(cur.lng).toFixed(4)} ${cur.lng>=0?'E':'W'} · Z${map.getZoom().toFixed(1)} · TILT ${Math.round(map.getPitch())}° · HDG ${Math.round(((map.getBearing()%360)+360)%360)}°`;
+  };
+  map.on('mousemove',e=>{lastCursor=e.lngLat;hud();});
+  map.on('move',hud);
+  ['mousedown','touchstart','wheel'].forEach(t=>map.on(t,()=>{if(orbitOn)setOrbit(false);}));
+  map.on('click',e=>{
+    const p=e.point,fs=map.queryRenderedFeatures([[p.x-7,p.y-7],[p.x+7,p.y+7]],{layers:['inc-core','inc-beams']});
+    if(fs.length){
+      const hit=fs.find(f=>f.layer.id==='inc-core')||fs[0];
+      const id=hit.properties&&hit.properties.id;
+      if(id!=null&&state.byId.has(String(id))){Sound.play('select');select(String(id),{fly:false,scroll:true,popup:true});return;}
+    }
+    Sound.play('tick');
+  });
+  map.on('mousemove',e=>{
+    const p=e.point,fs=map.queryRenderedFeatures([[p.x-5,p.y-5],[p.x+5,p.y+5]],{layers:['inc-core','inc-beams']});
+    map.getCanvas().style.cursor=fs.length?'pointer':'';
+  });
+  new ResizeObserver(()=>{if(map)map.resize();}).observe($('#mapwrap'));
+  hud();
+}
+
+function markReady(){
+  if(mapReady||!map)return;
+  mapReady=true;
+  applyLayers();
+  loadCounties();
+  drawMap();
+  setTimeout(()=>toast('Right-click and drag, or use two fingers, to tilt and rotate the map.'),1800);
+}
+function setCounties(fc){
+  if(!map||!map.getSource('counties'))return;
+  const polys=[],labels=[
+    {type:'Feature',properties:{kind:'state',label:'TENNESSEE'},geometry:{type:'Point',coordinates:[-89.5,35.62]}},
+    {type:'Feature',properties:{kind:'state',label:'MISSISSIPPI'},geometry:{type:'Point',coordinates:[-89.6,34.62]}},
+    {type:'Feature',properties:{kind:'state',label:'ARKANSAS'},geometry:{type:'Point',coordinates:[-90.55,35.35]}}
+  ];
+  for(const f of fc.features){
+    const p=f.properties||{},shelby=p.NAME==='Shelby'&&String(p.STATEFP)==='47';
+    polys.push({type:'Feature',properties:{name:p.NAME,shelby},geometry:f.geometry});
+    const lat=Number(p.INTPTLAT),lon=Number(p.INTPTLON);
+    if(Number.isFinite(lat)&&Number.isFinite(lon))labels.push({type:'Feature',properties:{kind:'county',shelby,label:`${String(p.NAME||'').toUpperCase()} CO. ${STATE_ABBR[String(p.STATEFP)]||''}`.trim()},geometry:{type:'Point',coordinates:[lon,lat]}});
+  }
+  map.getSource('counties').setData({type:'FeatureCollection',features:polys});
+  map.getSource('clabels').setData({type:'FeatureCollection',features:labels});
+}
+async function loadCounties(){
+  const shelby={type:'Feature',properties:{NAME:'Shelby',STATEFP:'47',INTPTLAT:35.1845,INTPTLON:-89.8946},geometry:{type:'Polygon',coordinates:[SHELBY_RING]}};
+  let fc=null;
+  try{
+    const j=await arc(CNTY_URL,{where:'1=1',outFields:'NAME,STATEFP,COUNTYFP,INTPTLAT,INTPTLON',outSR:'4326',maxAllowableOffset:'0.002',geometryPrecision:'3',f:'geojson'},20000);
+    if(j&&Array.isArray(j.features)&&j.features.length)fc=j;
+  }catch(e){}
+  if(!fc||!fc.features.some(f=>f.properties&&f.properties.NAME==='Shelby'))fc={features:[shelby,...(fc?fc.features:[])]};
+  setCounties(fc);
+}
+
+function applyLayers(){
+  if(!mapReady)return;
+  for(const k of Object.keys(LAYER_IDS))for(const id of LAYER_IDS[k]){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',state.layers[k]?'visible':'none');}
+  $$('#mbar [data-layer]').forEach(b=>b.setAttribute('aria-pressed',String(!!state.layers[b.dataset.layer])));
+}
+function sq(lon,lat,dx,dy){return[[[lon-dx,lat-dy],[lon+dx,lat-dy],[lon+dx,lat+dy],[lon-dx,lat+dy],[lon-dx,lat-dy]]];}
+function drawMap(){
+  if(!mapReady)return;
+  const pins=[],beams=[],cells=new Map();
+  const CX=.012,CY=.0105;let nb=0;
+  for(const r of state.view){
+    if(!r.mapped)continue;
+    pins.push({type:'Feature',properties:{id:r.id,sev:r.sev},geometry:{type:'Point',coordinates:[r.lon,r.lat]}});
+    if(nb<1800){nb++;beams.push({type:'Feature',properties:{id:r.id,sev:r.sev,h:BEAM_H[r.sev]},geometry:{type:'Polygon',coordinates:sq(r.lon,r.lat,.00045,.0004)}});}
+    const k=Math.floor(r.lon/CX)+','+Math.floor(r.lat/CY);cells.set(k,(cells.get(k)||0)+1);
+  }
+  let maxN=1;for(const n of cells.values())if(n>maxN)maxN=n;
+  const grid=[];
+  for(const [k,n] of cells){const [i,j]=k.split(',').map(Number),t=n/maxN;grid.push({type:'Feature',properties:{n,t,h:90+t*3300},geometry:{type:'Polygon',coordinates:[[[i*CX+.001,j*CY+.001],[(i+1)*CX-.001,j*CY+.001],[(i+1)*CX-.001,(j+1)*CY-.001],[i*CX+.001,(j+1)*CY-.001],[i*CX+.001,j*CY+.001]]]}});}
+  map.getSource('inc').setData({type:'FeatureCollection',features:pins});
+  map.getSource('beams').setData({type:'FeatureCollection',features:beams});
+  map.getSource('grid').setData({type:'FeatureCollection',features:grid});
+  if(state.selected&&!state.byId.has(state.selected)){state.selected=null;clearRing();closePopup();}
+}
+
+function setOrbit(on){
+  orbitOn=!!on;cancelAnimationFrame(orbitRaf);
+  const b=$('#orbitBtn');if(b)b.setAttribute('aria-pressed',String(orbitOn));
+  if(!orbitOn||!map)return;
+  let last=performance.now();
+  const step=t=>{if(!orbitOn||!map)return;map.setBearing(map.getBearing()+(t-last)*0.005);last=t;orbitRaf=requestAnimationFrame(step);};
+  orbitRaf=requestAnimationFrame(step);
+}
+function goView(name){
+  if(!mapReady)return;
+  setOrbit(false);closePopup();
+  if(isMobile())setView('map');
+  if(name==='fit'){
+    const pts=state.view.filter(r=>r.mapped);
+    if(!pts.length){toast('No mapped incidents in view.');return;}
+    const b=new maplibregl.LngLatBounds();pts.forEach(r=>b.extend([r.lon,r.lat]));
+    map.fitBounds(b,{padding:60,pitch:Math.max(45,map.getPitch()),duration:1500,maxZoom:14,essential:true});return;
+  }
+  const v=VIEWS[name];if(!v)return;
+  if(v.bounds)map.fitBounds(v.bounds,{pitch:v.pitch,bearing:v.bearing,padding:{top:70,bottom:30,left:30,right:30},duration:1700,essential:true});
+  else map.flyTo({center:v.center,zoom:v.zoom,pitch:v.pitch,bearing:v.bearing,duration:1900,essential:true});
+}
+
+/* ---------- filtering ---------- */
+function recompute(){
+  const cutoff=state.anchor-state.days*864e5;
+  const inWin=state.all.filter(r=>r.t>=cutoff&&r.t<=state.anchor+36*3600e3);
+  const sevCounts={crit:0,elev:0,std:0};
+  const base=[];
+  for(const r of inWin){
+    if(state.partOne&&r.part!==1)continue;
+    sevCounts[r.sev]++;
+    if(state.sev[r.sev])base.push(r);
+  }
+  const tc=new Map();
+  for(const r of base)tc.set(r.key,(tc.get(r.key)||0)+1);
+  state.typeCounts=[...tc.entries()].sort((a,b)=>b[1]-a[1]);
+  state.sevCounts=sevCounts;
+  state.view=base.filter(r=>!state.hidden.has(r.key)).sort((a,b)=>b.t-a.t);
+  state.byId=new Map(state.view.map(r=>[r.id,r]));
+}
+let rafId=0;
+function schedule(){if(rafId)return;rafId=requestAnimationFrame(()=>{rafId=0;render();});}
+function render(){recompute();drawMap();drawFeed();drawSide();drawBar();}
+
+function popupHtml(r){
+  const place=placeText(r),note=plainNote(r),part=partLabel(r.part);
+  const rows=[];
+  if(r.off)rows.push(['Occurred',fmtTime(r.off)]);
+  if(r.rep)rows.push(['Reported',fmtTime(r.rep)]);
+  if(r.prec)rows.push(['Precinct',titleCase(r.prec)]);
+  if(part)rows.push(['Class',part]);
+  if(r.cat&&r.cat!==r.desc)rows.push(['Category',titleCase(r.cat)]);
+  return `<div class="pop"><span class="pill ${r.sev}">${LAB[r.sev]}</span><h4>${esc(titleCase(r.key))}</h4><div>${esc(place||'Location not published')}</div>
+  <dl>${rows.map(x=>`<dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd>`).join('')}</dl><div class="note">${note?esc(note)+' ':''}Pin is approximate; the city rounds locations to the hundred block.</div></div>`;
+}
+function cardHtml(r){
+  const place=placeText(r),part=partLabel(r.part),note=plainNote(r);
+  const meta=[r.off?`Occurred ${fmtTime(r.off)}`:'',r.rep?`Reported ${fmtTime(r.rep)}`:'',r.prec?titleCase(r.prec):'',part].filter(Boolean).join(' · ');
+  return `<button class="card ${r.sev}" data-id="${esc(r.id)}" data-sfx="select" aria-pressed="${r.id===state.selected}">
+    <div class="c-top"><span class="pill ${r.sev}">${LAB[r.sev]}</span><span class="c-ago">${esc(ago(r.t))}</span></div>
+    <h3>${esc(titleCase(r.key))}</h3>
+    <p class="c-place${place?'':' dim'}">${esc(place||'Location not published')}${r.mapped?'':' · not on map'}</p>
+    <p class="c-meta">${esc(meta)}</p>${note?`<p class="c-note">${esc(note)}</p>`:''}</button>`;
+}
+function drawFeed(){
+  const box=$('#feed');
+  $('#feedCount').textContent=`${state.view.length.toLocaleString()} shown`;
+  if(!state.all.length){return;}
+  if(!state.view.length){box.innerHTML='<div class="empty">No incidents match these filters in this window. Try a longer window or turn more filters on.</div>';return;}
+  const slice=state.view.slice(0,state.shown);
+  box.innerHTML=slice.map(cardHtml).join('')+(state.view.length>slice.length?`<button id="more" data-sfx="click">Show ${Math.min(300,state.view.length-slice.length)} more</button>`:'');
+}
+function drawSide(){
+  $('#nCrit').textContent=state.sevCounts.crit.toLocaleString();
+  $('#nElev').textContent=state.sevCounts.elev.toLocaleString();
+  $('#nStd').textContent=state.sevCounts.std.toLocaleString();
+  $('#typeCount').textContent=`${state.typeCounts.length} types`;
+  const keys=new Set(state.typeCounts.map(x=>x[0]));
+  const rows=state.typeCounts.map(([k,n])=>({k,n,on:!state.hidden.has(k)}));
+  for(const k of state.hidden)if(!keys.has(k))rows.push({k,n:0,on:false});
+  $('#types').innerHTML=rows.map(x=>`<button class="type" data-k="${esc(x.k)}" aria-pressed="${x.on}" data-sfx="${x.on?'off':'on'}"><span>${esc(titleCase(x.k))}</span><b>${x.n.toLocaleString()}</b></button>`).join('')||'<div class="muted">No types in window.</div>';
+  const dFmt=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',timeZone:tzShow()});
+  if(state.all.length){
+    const a=dFmt.format(state.anchor-state.days*864e5),b=dFmt.format(state.anchor);
+    $('#windowNote').textContent=`${a} – ${b}`;
+    $('#rangeNote').textContent=`Showing ${a} to ${b}. The city has published nothing newer than ${b}. Windows count back from that date, not from today.`;
+  }
+  drawSpark();drawDiag();
+}
+function drawSpark(){
+  const days=state.days,counts=new Map();
+  for(const r of state.view)counts.set(dayKey(r.t),(counts.get(dayKey(r.t))||0)+1);
+  const keys=[];for(let i=days-1;i>=0;i--)keys.push(dayKey(state.anchor-i*864e5));
+  const uniq=[...new Set(keys)];
+  const vals=uniq.map(k=>counts.get(k)||0),max=Math.max(1,...vals);
+  const W=260,H=60,gap=2,bw=Math.max(2,W/uniq.length-gap);
+  const bars=vals.map((v,i)=>{const h=Math.round((v/max)*(H-6));return`<rect x="${(i*(bw+gap)).toFixed(1)}" y="${H-h}" width="${bw.toFixed(1)}" height="${h}" fill="currentColor" opacity="${i===vals.length-1?1:.6}"><title>${esc(uniq[i])}: ${v}</title></rect>`;}).join('');
+  $('#sparkMax').textContent=`peak ${max}`;
+  $('#sparkBox').innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Incidents per day"><line x1="0" y1="${H-.5}" x2="${W}" y2="${H-.5}" stroke="#2c4254"/>${bars}</svg><div class="tiny" style="display:flex;justify-content:space-between"><span>${esc(uniq[0]||'')}</span><span>${esc(uniq[uniq.length-1]||'')}</span></div>`;
+}
+function drawDiag(){
+  const d=state.diag,bi=state.basisInfo,rows=[
+    ['Source',d.source||'n/a'],
+    ['Rows loaded',d.loaded!=null?d.loaded.toLocaleString():'n/a'],
+    ['Pages / ms',d.pages!=null?`${d.pages} / ${d.ms}`:'n/a'],
+    ['No valid date (dropped)',d.dropped!=null?String(d.dropped):'n/a'],
+    ['No usable location',d.unmapped!=null?String(d.unmapped):'n/a'],
+    ['Date filter',d.fallback?'client-side (server filter refused)':'server-side'],
+    ['City last edit',state.lastEdit?`${fmtInstant(state.lastEdit)} CT`:'not reported'],
+    ['Time basis',state.basis==='wall'?'Central clock times':'exact UTC instants'],
+    ['Basis detection',bi?(bi.confident?`confident (n=${bi.n})`:`unsure, defaulted (n=${bi.n})`):'n/a']
+  ];
+  $('#diag').innerHTML=rows.map(r=>`<dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd>`).join('');
+}
+function drawBar(){
+  const v=state.view;
+  $('#tIn').textContent=v.length.toLocaleString();
+  $('#tCrit').textContent=v.filter(r=>r.sev==='crit').length.toLocaleString();
+  $('#tPart').textContent=v.filter(r=>r.part===1).length.toLocaleString();
+  $('#tUnm').textContent=v.filter(r=>!r.mapped).length.toLocaleString();
+  const latest=v.slice(0,15);
+  $('#track').innerHTML=latest.length?latest.map(r=>`<span>● ${esc(titleCase(r.key))} · ${esc(placeText(r)||'location not published')} · ${esc(fmtTime(r.t))}</span>`).join(''):'<span>No incidents in view</span>';
+}
+function drawFresh(){
+  const chip=$('#chipFresh'),stale=$('#stale');
+  let newest=null;for(const r of state.all){const v=r.rep||r.t;if(newest===null||v>newest)newest=v;}
+  $('#newestText').textContent=newest?fmtTime(newest):'n/a';
+  $('#freshText').textContent=state.lastEdit?`${fmtInstant(state.lastEdit)} CT`:'unknown';
+  chip.className='stat';
+  if(newest===null)return;
+  const days=(Date.now()-realInstant(newest))/864e5;
+  if(days<1.5){chip.classList.add('ok');stale.hidden=true;return;}
+  chip.classList.add(days<7?'warn':'bad');
+  if(days<3){stale.hidden=true;return;}
+  const today=new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:CHI}).format(Date.now());
+  stale.classList.toggle('warn',days<7);
+  stale.innerHTML=`<strong>Today is ${esc(today)}, but the newest incident the city has published was reported ${esc(fmtTime(newest))} (${Math.floor(days)} days ago).</strong> <span class="more"> The city last refreshed this feed ${state.lastEdit?esc(fmtInstant(state.lastEdit))+' CT':'at an unknown time'}. The pins show the latest data that exists, not today. Memphis does not publish a live crime feed, so nothing newer is available to map. Sentinel re-checks every 15 minutes and switches over the moment the city publishes newer records. For what is happening right now, use the radio.</span>`;
+  stale.hidden=false;
+}
+
+/* ---------- selection ---------- */
+function clearRing(){if(ringMarker){ringMarker.remove();ringMarker=null;}}
+function closePopup(){if(popup){const p=popup;popup=null;p.remove();}}
+function openPopup(r){
+  if(!map||!r.mapped)return;
+  closePopup();
+  popup=new maplibregl.Popup({offset:18,maxWidth:'300px',focusAfterOpen:false}).setLngLat([r.lon,r.lat]).setHTML(popupHtml(r)).addTo(map);
+}
+function setView(v){
+  document.body.dataset.view=v;
+  $$('#tabs button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===v)));
+  if(v==='map'&&map)setTimeout(()=>map.resize(),30);
+}
+const isMobile=()=>window.matchMedia('(max-width:900px)').matches;
+function select(id,opt){
+  opt=opt||{};
+  state.selected=id;
+  $$('#feed .card').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.id===id)));
+  const r=state.byId.get(id);clearRing();if(!r||!map||!mapReady)return;
+  if(r.mapped){
+    const el=document.createElement('div');el.className='ring-wrap';el.innerHTML='<div class="ring"></div>';
+    ringMarker=new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([r.lon,r.lat]).addTo(map);
+    if(opt.fly!==false){
+      setOrbit(false);closePopup();
+      if(isMobile())setView('map');
+      setTimeout(()=>{
+        map.flyTo({center:[r.lon,r.lat],zoom:Math.max(map.getZoom(),15.2),pitch:Math.max(map.getPitch(),58),duration:1300,essential:true});
+        map.once('moveend',()=>{if(state.selected===id)openPopup(r);});
+      },isMobile()?80:0);
+    }else if(opt.popup){openPopup(r);}
+  }else if(opt.fly!==false){toast('This report has no usable location, so it is not on the map.');}
+  if(opt.scroll){const el=$(`#feed .card[data-id="${CSS.escape(id)}"]`);if(el)el.scrollIntoView({block:'nearest',behavior:'smooth'});}
+}
+
+/* ---------- data ---------- */
+class ArcError extends Error{constructor(m,code){super(m);this.code=code;}}
+async function arc(url,params,ms){
+  const u=new URL(url);
+  for(const [k,v] of Object.entries(params||{}))u.searchParams.set(k,v);
+  if(!params||!params.f)u.searchParams.set('f','json');
+  const ctrl=new AbortController(),id=setTimeout(()=>ctrl.abort(),ms||40000);
+  let res;
+  try{res=await fetch(u.toString(),{signal:ctrl.signal});}
+  catch(e){const err=new Error(e.name==='AbortError'?'The city server took too long to answer.':'The browser could not reach the city data server.');err.network=true;throw err;}
+  finally{clearTimeout(id);}
+  if(!res.ok){const err=new Error(`The city data server answered HTTP ${res.status}.`);err.network=true;throw err;}
+  const j=await res.json();
+  if(j.error)throw new ArcError(j.error.message||'The city data service returned an error.',j.error.code);
+  return j;
+}
+async function loadMeta(src){
+  const meta=await arc(src.url,{f:'json'},20000);
+  if(!Array.isArray(meta.fields))throw new ArcError('No fields');
+  const ei=meta.editingInfo||{};
+  const lastEdit=ei.dataLastEditDate||ei.lastEditDate||null;
+  return{...src,meta,lastEdit:typeof lastEdit==='number'?lastEdit:null};
+}
+async function pickSource(){
+  const res=await Promise.allSettled(SOURCES.map(loadMeta));
+  const ok=res.filter(r=>r.status==='fulfilled').map(r=>r.value).filter(s=>{const F=resolveFields(s.meta.fields);return(F.off||F.rep)&&(String(s.meta.geometryType||'').includes('Point')||F.lat);});
+  if(!ok.length){
+    const firstErr=res.find(r=>r.status==='rejected');
+    const e=new Error(firstErr?firstErr.reason.message:'No usable incident layer was found.');e.network=firstErr?!!firstErr.reason.network:false;throw e;
+  }
+  ok.sort((a,b)=>(b.lastEdit||0)-(a.lastEdit||0));
+  return ok[0];
+}
+async function fetchAnchor(src,F){
+  const field=F.rep||F.off;
+  const base={outFields:field,returnGeometry:'false',orderByFields:`${field} DESC`,resultRecordCount:1,f:'json'};
+  let j;
+  try{j=await arc(src.url+'/query',{...base,where:`${field} <= timestamp '${fmtSql(Date.now()+864e5)}'`});}
+  catch(e){if(e.network)throw e;j=await arc(src.url+'/query',{...base,where:'1=1'});}
+  const f=(j.features||[])[0];
+  const v=f&&f.attributes?epoch(f.attributes[field]):null;
+  return v!==null?v:Date.now();
+}
+async function fetchAll(src,F,since,onPage){
+  const oid=src.meta.objectIdField||'ObjectId';
+  const orderField=F.off||F.rep;
+  const fields=[...new Set([...Object.values(F).filter(Boolean),oid])];
+  const out=[];let dropped=0,pages=0,fallback=false;
+  async function run(where){
+    out.length=0;dropped=0;pages=0;let offset=0;
+    for(;;){
+      const j=await arc(src.url+'/query',{where,outFields:fields.join(','),returnGeometry:'true',outSR:'4326',orderByFields:`${orderField} DESC,${oid} DESC`,resultOffset:offset,resultRecordCount:PAGE,f:'json'});
+      const feats=j.features||[];pages++;
+      for(const f of feats){const r=normalizeRecord(f,F,oid);if(r)out.push(r);else dropped++;}
+      if(onPage)onPage(out,pages);
+      if(!feats.length||!(j.exceededTransferLimit||feats.length>=PAGE)||out.length+dropped>=MAX_RECORDS)break;
+      offset+=feats.length;
+    }
+  }
+  try{await run(buildWhere(F,since));}
+  catch(e){if(e.network)throw e;fallback=true;await run('1=1');}
+  return{records:out.slice(),pages,dropped,fallback};
+}
+function setLink(kind,text){const c=$('#chipLink');c.className='stat '+kind;$('#linkText').textContent=text;}
+function setBasis(){
+  if(state.basisPref==='auto'){state.basisInfo=detectBasis(state.all);state.basis=state.basisInfo.basis;}
+  else{state.basis=state.basisPref;}
+}
+function showError(title,body){
+  let framed=false;try{framed=window.top!==window.self;}catch(e){framed=true;}
+  if(framed&&/browser could not reach/.test(body))body+=' This page is running inside a preview frame, which usually blocks outside connections. Open the file directly in your browser instead.';
+  $('#mapMsgTitle').textContent=title;$('#mapMsgBody').textContent=body;$('#mapMsg').hidden=false;
+  if(!state.all.length)$('#feed').innerHTML=`<div class="empty">${esc(title)}. ${esc(body)}</div>`;
+}
+async function load(manual){
+  if(state.loading)return;
+  state.loading=true;$('#refreshBtn').disabled=true;setLink('busy','Linking');
+  const t0=performance.now();
+  const prevIds=state.ids;
+  try{
+    const src=await pickSource();
+    const F=resolveFields(src.meta.fields);
+    const anchor=await fetchAnchor(src,F);
+    const since=anchor-FETCH_DAYS*864e5;
+    const res=await fetchAll(src,F,since,(rows,pages)=>{
+      $('#linkText').textContent=`Loading ${rows.length.toLocaleString()}`;
+      $('#gateStatus').textContent=`Receiving incidents: ${rows.length.toLocaleString()}`;
+      if(pages===1&&!state.all.length){state.all=rows.slice();state.anchor=anchor;setBasis();schedule();}
+    });
+    state.src=src;state.lastEdit=src.lastEdit;state.anchor=anchor;state.all=res.records;
+    state.ids=new Set(res.records.map(r=>r.id));
+    setBasis();
+    state.diag={source:src.name,loaded:res.records.length,pages:res.pages,ms:Math.round(performance.now()-t0),dropped:res.dropped,unmapped:res.records.filter(r=>!r.mapped).length,fallback:res.fallback};
+    $('#mapMsg').hidden=true;
+    state.lastLoad=Date.now();
+    const hh=new Date().toLocaleTimeString('en-US',{timeZone:CHI,hour:'numeric',minute:'2-digit'});
+    setLink('ok',`Link OK ${hh}`);
+    $('#gateStatus').textContent=`Link established: ${res.records.length.toLocaleString()} incidents`;
+    render();drawFresh();
+    if(prevIds.size){
+      const fresh=res.records.filter(r=>!prevIds.has(r.id)&&r.t>=state.anchor-state.days*864e5);
+      if(fresh.length){const crit=fresh.some(r=>r.sev==='crit');Sound.play(crit?'alarm':'alert');toast(`${fresh.length} new incident${fresh.length>1?'s':''} from the city feed`);}
+      else if(manual)toast('Checked the city feed: nothing new.');
+    }else if(!state.fitted){state.fitted=true;}
+  }catch(e){
+    setLink('bad','Link down');Sound.play('error');
+    $('#gateStatus').textContent='Link failed';
+    showError('Link down',e.network?`${e.message} Check your connection, then retry. If you are on a network that blocks outside sites, try another network.`:`${e.message} The city may have changed or paused this service.`);
+  }finally{
+    state.loading=false;$('#refreshBtn').disabled=false;
+  }
+}
+/* ---------- scanner ---------- */
+function tune(e){
+  const url='https://www.broadcastify.com/webPlayer/215';
+  let w=null;
+  try{w=window.open(url,'sentinel-radio','popup=yes,width=440,height=700');}catch(err){}
+  if(w){e.preventDefault();try{w.focus();}catch(err){}}
+  /* if the pop-up was blocked, the link's normal new-tab behavior takes over */
+}
+
+/* ---------- wiring ---------- */
+function wire(){
+  document.addEventListener('click',e=>{
+    const el=e.target.closest('button,a.btn,.card');
+    if(!el||el.id==='engage'||el.id==='silent')return;
+    if(el.dataset.sfx==='none')return;
+    if(el.classList.contains('card'))return;   // card sound is played by select()
+    Sound.play(el.dataset.sfx||'click');
+  },true);
+
+  $('#feed').addEventListener('click',e=>{
+    const more=e.target.closest('#more');if(more){state.shown+=300;drawFeed();return;}
+    const c=e.target.closest('.card');if(!c)return;
+    Sound.play('select');select(c.dataset.id,{fly:true});
+  });
+  $$('#winSeg button').forEach(b=>b.addEventListener('click',()=>{
+    state.days=Number(b.dataset.d);state.shown=300;
+    $$('#winSeg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));schedule();
+  }));
+  $$('#sevRow .chip').forEach(b=>b.addEventListener('click',()=>{
+    const k=b.dataset.sev;state.sev[k]=!state.sev[k];b.setAttribute('aria-pressed',String(state.sev[k]));state.shown=300;schedule();
+  }));
+  $('#partOne').addEventListener('click',e=>{state.partOne=!state.partOne;e.currentTarget.setAttribute('aria-pressed',String(state.partOne));state.shown=300;schedule();});
+  $('#types').addEventListener('click',e=>{
+    const b=e.target.closest('.type');if(!b)return;
+    const k=b.dataset.k;if(state.hidden.has(k))state.hidden.delete(k);else state.hidden.add(k);state.shown=300;schedule();
+  });
+  $('#typesAll').addEventListener('click',()=>{state.hidden.clear();schedule();});
+  $('#typesNone').addEventListener('click',()=>{state.typeCounts.forEach(([k])=>state.hidden.add(k));schedule();});
+  $$('#mbar [data-go]').forEach(b=>b.addEventListener('click',()=>goView(b.dataset.go)));
+  $('#orbitBtn').addEventListener('click',()=>{if(!mapReady)return;const next=!orbitOn;Sound.play(next?'on':'off');setOrbit(next);});
+  $$('#mbar [data-layer]').forEach(b=>b.addEventListener('click',()=>{
+    const k=b.dataset.layer;state.layers[k]=!state.layers[k];Sound.play(state.layers[k]?'on':'off');applyLayers();
+  }));
+  $('#refreshBtn').addEventListener('click',()=>load(true));
+  $('#retryBtn').addEventListener('click',()=>{if(mapDown){location.reload();return;}$('#mapMsg').hidden=true;load(true);});
+  $('#tune').addEventListener('click',tune);
+  $('#basisSel').addEventListener('change',e=>{state.basisPref=e.target.value;setBasis();render();drawFresh();});
+  $$('#tabs button').forEach(b=>b.addEventListener('click',()=>setView(b.dataset.view)));
+  $('#stale').addEventListener('click',()=>$('#stale').classList.toggle('open'));
+
+  const sb=$('#soundBtn');
+  function paintSound(){sb.textContent=Sound.on?'Sound on':'Sound off';sb.setAttribute('aria-pressed',String(Sound.on));}
+  sb.dataset.sfx='none';
+  sb.addEventListener('click',()=>{const next=!Sound.on;if(!next)Sound.play('off');Sound.set(next);if(next)Sound.play('on');paintSound();});
+  paintSound();
+
+  $('#engage').addEventListener('click',()=>{Sound.set(true);Sound.unlock();Sound.play('boot');paintSound();$('#gate').hidden=true;});
+  $('#silent').addEventListener('click',()=>{Sound.set(false);paintSound();$('#gate').hidden=true;});
+
+  const clockFmt=new Intl.DateTimeFormat('en-US',{timeZone:CHI,weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+  const tickClock=()=>{$('#clock').textContent=clockFmt.format(Date.now())+' CT';};
+  tickClock();setInterval(tickClock,1000);
+  setInterval(()=>{if(!document.hidden)load(false);},REFRESH_MS);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-state.lastLoad>10*60*1000)load(false);});
+  setInterval(()=>{if(state.all.length)drawFresh();},60000);
+}
+
+wire();
+try{
+  initMap();
+}catch(e){
+  map=null;mapDown=true;
+  const webgl=/webgl|context/i.test(String(e&&e.message));
+  $('#mapMsgTitle').textContent='3D map unavailable';
+  $('#mapMsgBody').textContent=(webgl?'This browser could not start the 3D (WebGL) map. Try Chrome, Safari or Edge with hardware acceleration on.':e.message)+' The incident feed and radio still work.';
+  $('#retryBtn').textContent='Reload';$('#mapMsg').hidden=false;
+}
+load(false);
+})();
+</script>
+</body>
+</html>
