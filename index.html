@@ -7,7 +7,7 @@
 <title>SENTINEL Memphis Watch</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css" onerror="this.onerror=null;this.href='https://cdn.jsdelivr.net/npm/maplibre-gl@4.7.1/dist/maplibre-gl.css'">
 <style>
 /* Layout: full-height console. Header, optional stale-data banner, three columns
@@ -16,13 +16,13 @@
 :root{
   color-scheme: dark;
   --bg:#05070a; --panel:#0b0f14; --panel-2:#10161d; --edge:#1d2a35; --edge-hot:#2c4254;
-  --hud:#ffc928;        /* chrome, focus, links */
+  --hud:#e9b949;        /* chrome, focus, links */
   --alarm:#ff3b3b;      /* critical, panel corner brackets */
   --amber:#ff9f1c;      /* elevated, warnings */
   --std:#4fc3ff;        /* standard incidents */
   --ok:#52f2b5;
   --text:#d7e6ee; --muted:#7a909e;
-  --f-display:'Chakra Petch','Segoe UI',system-ui,sans-serif;
+  --f-display:'Inter','Segoe UI',system-ui,sans-serif;
   --f-mono:'JetBrains Mono',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
@@ -30,7 +30,7 @@
 html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:13px/1.45 var(--f-mono);overflow:hidden}
 button,a.btn{font:600 11px/1 var(--f-display);letter-spacing:.14em;text-transform:uppercase;color:var(--hud);background:transparent;border:1px solid var(--hud);padding:9px 12px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px;
   clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
-button:hover,a.btn:hover{background:rgba(255,201,40,.12)}
+button:hover,a.btn:hover{background:rgba(233,185,73,.12)}
 button:disabled{opacity:.5;cursor:progress}
 button.alert{color:var(--alarm);border-color:var(--alarm)}
 :focus-visible{outline:2px solid var(--hud);outline-offset:2px}
@@ -42,9 +42,9 @@ h1,h2,h3,h4,p{margin:0}
 #top{display:flex;align-items:center;gap:14px;padding:10px 16px;border-bottom:1px solid var(--edge);background:linear-gradient(180deg,#0a1016,#06090d);flex-wrap:wrap;padding-top:max(10px,env(safe-area-inset-top))}
 .brand{display:flex;align-items:center;gap:12px;margin-right:auto}
 .emblem{width:40px;height:24px;position:relative;flex:none}
-.emblem span{position:absolute;top:2px;width:16px;height:11px;background:var(--hud);box-shadow:0 0 10px var(--hud),0 0 24px rgba(255,201,40,.45);clip-path:polygon(0 40%,70% 0,100% 30%,40% 100%)}
+.emblem span{position:absolute;top:2px;width:16px;height:11px;background:var(--hud);box-shadow:0 0 10px var(--hud),0 0 24px rgba(233,185,73,.45);clip-path:polygon(0 40%,70% 0,100% 30%,40% 100%)}
 .emblem .l{left:0}.emblem .r{right:0;transform:scaleX(-1)}
-.name{font:700 20px/1 var(--f-display);letter-spacing:.22em;color:var(--hud);text-shadow:0 0 14px rgba(255,201,40,.5)}
+.name{font:700 20px/1 var(--f-display);letter-spacing:.22em;color:var(--hud);text-shadow:0 0 14px rgba(233,185,73,.5)}
 .sub{font-size:10px;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-top:4px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}
 .stat{display:flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid var(--edge);background:var(--panel);font-size:11px;color:var(--muted)}
@@ -99,7 +99,7 @@ summary{cursor:pointer;font:600 11px var(--f-display);letter-spacing:.2em;text-t
 /* map */
 #mapwrap{position:relative;min-width:0;min-height:0;background:#03050a}
 #map{position:absolute;inset:0;background:#03050a}
-#mapwrap::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:500;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%),repeating-linear-gradient(to bottom,rgba(255,201,40,.03) 0,rgba(255,201,40,.03) 1px,transparent 1px,transparent 3px)}
+#mapwrap::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:500;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55) 100%),repeating-linear-gradient(to bottom,rgba(233,185,73,.03) 0,rgba(233,185,73,.03) 1px,transparent 1px,transparent 3px)}
 #coords{position:absolute;left:12px;bottom:10px;z-index:600;font-size:10.5px;color:var(--hud);background:rgba(5,7,10,.78);padding:4px 8px;border:1px solid var(--edge);pointer-events:none}
 .mapmsg{position:absolute;z-index:700;left:50%;top:50%;transform:translate(-50%,-50%);width:min(440px,calc(100% - 32px));background:var(--panel);border:1px solid var(--alarm);padding:18px}
 .mapmsg h3{font:700 14px var(--f-display);letter-spacing:.16em;text-transform:uppercase;color:var(--alarm);margin-bottom:8px}
@@ -152,7 +152,7 @@ summary{cursor:pointer;font:600 11px var(--f-display);letter-spacing:.2em;text-t
 #gate{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(ellipse at center,#0c1822 0,#04070a 70%)}
 .gatecard{width:min(460px,100%);text-align:center;padding:32px 24px;border:1px solid var(--edge-hot);background:rgba(8,12,17,.92);position:relative}
 .gatecard .emblem{margin:0 auto 14px;transform:scale(1.5)}
-.gatecard h1{font:700 30px var(--f-display);letter-spacing:.3em;color:var(--hud);text-shadow:0 0 20px rgba(255,201,40,.5)}
+.gatecard h1{font:700 30px var(--f-display);letter-spacing:.3em;color:var(--hud);text-shadow:0 0 20px rgba(233,185,73,.5)}
 .gatecard p{margin:10px 0}
 #gateStatus{color:var(--hud);font-size:12px;min-height:18px;margin:16px 0}
 .gatecard .btnrow{justify-content:center}
@@ -193,20 +193,20 @@ body{background:#04060a}
 #top{background:
   linear-gradient(90deg,transparent 0,transparent 0) ,
   repeating-linear-gradient(135deg,var(--hud) 0 9px,#07090d 9px 18px) bottom/100% 4px no-repeat,
-  radial-gradient(ellipse 420px 150px at 9% -10%,rgba(255,201,40,.2),transparent 70%),
+  radial-gradient(ellipse 420px 150px at 9% -10%,rgba(168,216,255,.2),transparent 70%),
   radial-gradient(ellipse 520px 160px at 62% -30%,rgba(120,170,220,.12),transparent 70%),
   var(--noise),linear-gradient(180deg,#0b1118,#05080c);
   border-bottom:0;padding-bottom:14px}
 :root{--noise:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='280'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.011 .019' numOctaves='5' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .66 0 0 0 0 .78 .55 0 0 0 -.2'/%3E%3C/filter%3E%3Crect width='280' height='280' filter='url(%23n)'/%3E%3C/svg%3E")}
 .rail{background:var(--noise),linear-gradient(180deg,#080b10,#05070a)}
 #bar{background:var(--noise),#05070a}
-.emblem{width:34px;height:34px;border:2px solid var(--hud);border-radius:50%;box-shadow:0 0 14px rgba(255,201,40,.55),inset 0 0 10px rgba(255,201,40,.25);position:relative}
+.emblem{width:34px;height:34px;border:2px solid var(--hud);border-radius:50%;box-shadow:0 0 14px rgba(168,216,255,.55),inset 0 0 10px rgba(168,216,255,.25);position:relative}
 .emblem::before,.emblem::after{content:"";position:absolute;background:var(--hud)}
 .emblem::before{left:50%;top:-6px;bottom:-6px;width:2px;transform:translateX(-50%)}
 .emblem::after{top:50%;left:-6px;right:-6px;height:2px;transform:translateY(-50%)}
 .emblem span{display:none}
 .gatecard .emblem{transform:scale(1.4);margin:8px auto 22px}
-.name{text-shadow:0 0 16px rgba(255,201,40,.55)}
+.name{text-shadow:0 0 16px rgba(168,216,255,.55)}
 .panel::before,.panel::after{border-color:var(--hud)}
 .panel{box-shadow:0 0 0 1px rgba(0,0,0,.6),inset 0 0 30px rgba(0,0,0,.35)}
 #mapwrap{box-shadow:inset 0 0 0 1px var(--edge-hot)}
@@ -216,7 +216,7 @@ body{background:#04060a}
 .maplibregl-ctrl-group{background:var(--panel)!important;border:1px solid var(--edge-hot);border-radius:0!important;box-shadow:none!important}
 .maplibregl-ctrl-group button{width:34px;height:34px;background-color:transparent}
 .maplibregl-ctrl-group button+button{border-top:1px solid var(--edge-hot)}
-.maplibregl-ctrl button:not(:disabled):hover{background-color:rgba(255,201,40,.14)!important}
+.maplibregl-ctrl button:not(:disabled):hover{background-color:rgba(168,216,255,.14)!important}
 .maplibregl-ctrl-icon{filter:invert(1) sepia(1) saturate(5) hue-rotate(2deg) brightness(.95)}
 .maplibregl-ctrl-attrib{background:rgba(5,7,10,.82)!important;color:var(--muted)!important;font:10px var(--f-mono)!important}
 .maplibregl-ctrl-attrib a{color:var(--hud)!important}
@@ -244,6 +244,175 @@ body{background:#04060a}
   .maplibregl-ctrl-top-right{top:46px}
   #legend{display:none}
 }
+
+/* ===== cinema skin ===== */
+:root{--f-display:'Inter',system-ui,'Segoe UI',sans-serif}
+#top{background:var(--noise),linear-gradient(180deg,#0a0e13,#05070a);box-shadow:inset 0 -1px 0 rgba(168,216,255,.35);padding-bottom:10px}
+.name{font-weight:600;font-size:24px;letter-spacing:.46em;text-shadow:none;color:#eaf0f4}
+.sub{letter-spacing:.32em;color:#7d92a1}
+button,a.btn{clip-path:none;border-color:#3a4c5a;color:#d3dee6;font-weight:600;font-size:13px;letter-spacing:.2em;padding:9px 13px}
+button:hover,a.btn:hover{background:rgba(168,216,255,.1);border-color:var(--hud);color:#fff}
+.panel{border:1px solid #17232d;border-top:1px solid rgba(168,216,255,.45);background:linear-gradient(180deg,rgba(11,16,22,.94),rgba(7,10,14,.94))}
+.panel::before,.panel::after{display:none}
+.cap{font-weight:600;font-size:13px;letter-spacing:.26em;color:#cfdbe3}
+.emblem{box-shadow:0 0 18px rgba(168,216,255,.4)}
+@keyframes pulse{50%{box-shadow:0 0 6px rgba(168,216,255,.2)}}
+.hud-c{position:absolute;width:30px;height:30px;border:1.5px solid rgba(168,216,255,.65);z-index:3;pointer-events:none}
+.hud-c.tl{top:4px;left:4px;border-right:0;border-bottom:0}.hud-c.tr{top:4px;right:4px;border-left:0;border-bottom:0}
+.hud-c.bl{bottom:4px;left:4px;border-right:0;border-top:0}.hud-c.br{bottom:4px;right:4px;border-left:0;border-top:0}
+#mbar{top:16px;left:18px}
+.mgrp{border-color:#26364a;background:rgba(4,6,9,.8)}
+.mlab{font-size:11px}.mb{font-size:12px!important}
+#gate{background:#000;flex-direction:column;overflow:hidden}
+#gate::before,#gate::after{content:"";position:absolute;left:0;right:0;height:11vh;background:#000;z-index:3;border-color:#111}
+#gate::before{top:0;border-bottom:1px solid #111}#gate::after{bottom:0;border-top:1px solid #111}
+#gate .gatecard{background:transparent;border:0;position:relative;z-index:2}
+.gatecard h1{font-weight:500;font-size:clamp(34px,7vw,64px);letter-spacing:.7em;text-indent:.7em;color:#eef3f6;text-shadow:0 0 40px rgba(168,216,255,.25);animation:track 3.4s cubic-bezier(.2,.7,.2,1) both}
+@keyframes track{from{letter-spacing:1.3em;opacity:0}to{letter-spacing:.7em;opacity:1}}
+.gline{height:1px;width:0;background:linear-gradient(90deg,transparent,var(--hud),transparent);margin:16px auto;animation:grow 2.6s .8s ease forwards}
+@keyframes grow{to{width:min(420px,80%)}}
+.gsub,.gsub2{letter-spacing:.3em;text-transform:uppercase;font:500 13px var(--f-display);color:#9fb2bf;opacity:0;animation:fadeIn 1.6s 1.6s ease forwards;margin:6px 0}
+.gsub2{color:#6d8191;animation-delay:2.1s}
+#gateStatus{opacity:0;animation:fadeIn 1s 2.4s ease forwards}
+.gatecard .btnrow{opacity:0;animation:fadeIn 1s 2.8s ease forwards}
+@keyframes fadeIn{to{opacity:1}}
+#camsPage{position:fixed;inset:0;z-index:4000;background:rgba(2,3,5,.97);overflow-y:auto;padding:max(24px,env(safe-area-inset-top)) 20px 40px}
+.camsin{max-width:1000px;margin:0 auto}
+.camshead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.camshead h2{font:500 34px var(--f-display);letter-spacing:.4em;text-transform:uppercase;color:#eef3f6}
+.camsec{font:600 13px var(--f-display);letter-spacing:.3em;text-transform:uppercase;color:var(--hud);margin:26px 0 10px;border-bottom:1px solid #17232d;padding-bottom:8px}
+.camrow{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.camcard{border:1px solid #1d2a35;border-top:1px solid rgba(168,216,255,.45);background:linear-gradient(180deg,#0b1016,#06090d);padding:14px;display:flex;flex-direction:column;gap:8px}
+.camcard h3{font:600 20px var(--f-display);letter-spacing:.06em;color:#eef3f6}
+.camcard p{color:#8ea2b0;font-size:12px;flex:1;margin:0}
+.camtag{font:600 11px var(--f-display);letter-spacing:.24em;text-transform:uppercase;color:var(--hud)}
+@media (max-width:900px){.hud-c{display:none}.camshead h2{font-size:24px;letter-spacing:.25em}}
+@media (prefers-reduced-motion:reduce){.emblem,.gatecard h1,.gline,.gsub,.gsub2,#gateStatus,.gatecard .btnrow{animation:none!important;opacity:1}.gline{width:min(420px,80%)}}
+
+/* ===== stark skin: restrained, cold, cinematic ===== */
+:root{--hud:#a8d8ff;--edge:rgba(168,216,255,.12);--edge-hot:rgba(168,216,255,.26);--alarm:#ff5a4d;--amber:#e8a23a;--std:#6fb4e0;--text:#dbe6ee;--muted:#7f93a2}
+html,body{background:#020406;font:12px/1.5 var(--f-mono)}
+#top{background:linear-gradient(180deg,#030507,#05080c);box-shadow:none;border-bottom:1px solid var(--edge);padding:9px 18px}
+.name{font:200 20px var(--f-display);letter-spacing:.7em;color:#fff;text-shadow:none}
+.sub{font:400 9.5px var(--f-display);letter-spacing:.34em;color:var(--muted)}
+.emblem{width:28px;height:28px;border:1px solid rgba(255,255,255,.85);box-shadow:none;animation:none}
+.emblem::before{width:1px;top:-5px;bottom:-5px;background:rgba(255,255,255,.85)}
+.emblem::after{height:1px;left:-5px;right:-5px;background:rgba(255,255,255,.85)}
+.stat{background:transparent;border:0;border-left:1px solid var(--edge);padding:2px 12px;font-size:11px}
+button,a.btn{background:transparent;border:1px solid var(--edge-hot);color:#dbe6ee;font:500 10.5px var(--f-display);letter-spacing:.26em;padding:9px 14px;clip-path:none}
+button:hover,a.btn:hover{background:rgba(168,216,255,.09);border-color:rgba(168,216,255,.6);color:#fff}
+.seg{border-color:var(--edge-hot)}
+.seg button{border-right-color:var(--edge)}
+.seg button[aria-pressed="true"]{background:rgba(168,216,255,.14);color:#fff;box-shadow:inset 0 -2px 0 var(--hud)}
+.chip{border-color:var(--edge)}.chip[aria-pressed="false"]{opacity:.35}
+.panel{background:transparent;border:0;border-bottom:1px solid var(--edge);box-shadow:none;padding:14px 16px}
+.cap{font:500 10.5px var(--f-display);letter-spacing:.34em;color:#9fb4c3}
+.rail{background:transparent;gap:0;padding:0}
+.card{background:transparent;border:0;border-bottom:1px solid rgba(168,216,255,.08);padding:12px 14px 12px 16px}
+.card:hover{background:rgba(168,216,255,.05)}
+.card[aria-pressed="true"]{box-shadow:none;background:rgba(168,216,255,.09)}
+.card::before{width:2px}
+.card h3{font:500 15px var(--f-display);letter-spacing:.02em}
+.pill{border:0;padding:0;font:600 9.5px var(--f-display);letter-spacing:.28em}
+#feed{gap:0}
+#feedHead{padding:14px 16px 10px}
+#bar{background:#030507;border-top:1px solid var(--edge);padding:6px 18px}
+.tile{background:transparent;border:0;border-left:1px solid var(--edge);padding:2px 16px}
+.tile b{font:200 24px var(--f-display);color:#fff}
+.tile span{letter-spacing:.24em}
+.ticker{border:0;background:transparent}
+.ticker .tag{background:transparent;color:var(--hud);border:1px solid var(--edge-hot);font-weight:500;letter-spacing:.3em}
+#stale{background:rgba(255,90,77,.07);border-bottom:1px solid rgba(255,90,77,.35);color:#cdb3b0;padding:7px 18px;font-size:11px;cursor:pointer}
+#stale strong{color:#f1d9d6;font-weight:500}
+#stale.warn{background:rgba(232,162,58,.07);border-color:rgba(232,162,58,.35);color:#cdbf9e}
+#stale:not(.open) .more{display:none}
+#stale:not(.open)::after{content:"  More";color:var(--hud);letter-spacing:.2em;text-transform:uppercase;font-size:10px}
+.hud-c{display:none}
+#map{background:radial-gradient(ellipse 80% 55% at 50% 0%,#1b2a38 0,#090f16 42%,#020406 80%)}
+#mapwrap{box-shadow:none}
+#mapwrap::after{background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.7) 100%)}
+.mgrp{background:rgba(3,5,8,.72);border:1px solid var(--edge)}
+.mlab{font:500 9.5px var(--f-display);letter-spacing:.3em;color:var(--muted)}
+.mb{font:500 10px var(--f-display)!important;letter-spacing:.2em!important;border-color:transparent!important;padding:7px 9px!important}
+.mb:hover{border-color:var(--edge-hot)!important;background:rgba(168,216,255,.08)!important}
+.mb[aria-pressed="true"]{background:rgba(168,216,255,.14)!important;color:#fff!important;border-color:transparent!important;box-shadow:inset 0 -2px 0 var(--hud)}
+#legend,#coords{background:rgba(3,5,8,.7);border:1px solid var(--edge);color:#9fb4c3}
+.maplibregl-ctrl-group{border-color:var(--edge-hot)}
+.maplibregl-ctrl-icon{filter:invert(1) brightness(.9)}
+.maplibregl-popup-content{border:1px solid var(--edge-hot);background:rgba(6,10,15,.96)!important}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:rgba(168,216,255,.4)!important}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:rgba(168,216,255,.4)!important}
+.maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:rgba(168,216,255,.4)!important}
+.maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:rgba(168,216,255,.4)!important}
+.camPin{position:relative;width:26px;height:26px;padding:0!important;border:1px solid rgba(255,255,255,.85)!important;border-radius:50%;background:rgba(3,5,8,.55)!important;cursor:pointer;clip-path:none!important;letter-spacing:0!important;display:block}
+.camPin i{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff}
+.camPin b{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:3px;font:500 8.5px var(--f-display);letter-spacing:.3em;color:#e9f2f8;text-shadow:0 0 4px #000}
+.camPin::after{content:"";position:absolute;inset:-1px;border-radius:50%;border:1px solid rgba(255,255,255,.35);transform:scale(1.55)}
+@keyframes camping{from{transform:scale(1);opacity:.8}to{transform:scale(2.2);opacity:0}}
+.camPin:hover{background:rgba(168,216,255,.25)!important}
+#gate{background:#000}
+.gatecard h1{font-weight:200;letter-spacing:.9em;text-indent:0;padding-left:.9em;text-shadow:none;color:#fff}
+@keyframes track{from{letter-spacing:1.6em;opacity:0}to{letter-spacing:.9em;opacity:1}}
+.gsub,.gsub2{font-weight:400;font-size:11px;letter-spacing:.34em}
+.camshead h2{font:200 30px var(--f-display);letter-spacing:.5em}
+.camsec{font:500 11px var(--f-display);letter-spacing:.34em}
+.camcard{background:transparent;border:1px solid var(--edge);border-top:1px solid var(--edge-hot)}
+.camcard h3{font:400 18px var(--f-display);letter-spacing:.02em}
+.camtag{font:500 9.5px var(--f-display);letter-spacing:.3em}
+@media (min-width:901px){
+  #main{display:block;position:relative}
+  #mapwrap{position:absolute;inset:0}
+  #left,#right{position:absolute;top:12px;bottom:12px;z-index:6;background:rgba(3,5,8,.82);border:1px solid var(--edge)}
+  #left{left:12px;width:292px}
+  #right{right:12px;width:340px}
+  #mbar{left:316px;right:364px}
+  #legend{left:316px}
+  #coords{left:316px}
+  .maplibregl-ctrl-top-right,.maplibregl-ctrl-bottom-right{margin-right:352px}
+}
+@media (max-width:900px){#tabs button[aria-pressed="true"]{background:rgba(168,216,255,.14);color:#fff;box-shadow:inset 0 -2px 0 var(--hud)}}
+@media (prefers-reduced-motion:reduce){.camPin::after{animation:none}}
+
+/* ===== camera UI ===== */
+.camPin{width:20px;height:20px}
+.camPin i{width:5px;height:5px;margin:-2.5px 0 0 -2.5px}
+.camPin b{display:none}
+.camgrp{font:500 9.5px var(--f-display);letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin:12px 0 5px}
+#camList{max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;padding-right:2px}
+#camList .type{font-size:10.5px;text-align:left}
+.maplibregl-popup.camhover .maplibregl-popup-content{padding:6px!important;min-width:0}
+.hv img{display:block;width:200px;height:150px;object-fit:cover;background:#000}
+.hv-live{width:200px;height:60px;display:flex;align-items:center;justify-content:center;border:1px solid var(--edge-hot);font:500 11px var(--f-display);letter-spacing:.3em;color:var(--hud)}
+.hv-t{font:500 11px var(--f-display);letter-spacing:.04em;margin-top:6px;max-width:200px;color:#eef3f6}
+.hv-s{font-size:9.5px;color:var(--hud);letter-spacing:.2em;text-transform:uppercase;margin-top:3px}
+#camView{position:absolute;z-index:8;right:364px;top:122px;width:440px;max-width:calc(100% - 340px);background:rgba(3,5,8,.94);border:1px solid var(--edge-hot);box-shadow:0 10px 40px rgba(0,0,0,.7)}
+.cvhead{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;border-bottom:1px solid var(--edge)}
+.cvt{font:500 14px var(--f-display);letter-spacing:.03em;color:#fff}
+.cvs{font-size:10.5px;color:var(--muted);margin-top:2px}
+.cvbody{position:relative;aspect-ratio:4/3;background:#000}
+.cvbody img,.cvbody video,.cvbody iframe{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:cover}
+.cvtag{position:absolute;left:8px;top:8px;font:600 9.5px var(--f-display);letter-spacing:.28em;padding:3px 7px;background:rgba(0,0,0,.65);border:1px solid var(--edge-hot);color:#cfdbe3}
+.cvtag.on{color:#ff6a5e;border-color:#ff6a5e}
+.cvfoot{padding:8px 12px;font-size:10.5px;color:var(--muted)}
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.walltile{display:block;padding:0;border:1px solid var(--edge);background:#000;text-align:left;letter-spacing:0;text-transform:none}
+.walltile img,.wlive{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#05080c}
+.wlive{display:flex;align-items:center;justify-content:center;font:500 11px var(--f-display);letter-spacing:.3em;color:var(--hud)}
+.walltile span{display:block;padding:7px 9px;font:400 11px/1.3 var(--f-mono);color:#cfdbe3}
+.camlinks{display:flex;flex-wrap:wrap;gap:8px}
+@media (max-width:900px){
+  #camView{right:8px;left:8px;top:auto;bottom:8px;width:auto;max-width:none}
+  .cvbody{aspect-ratio:16/10}
+}
+
+.rks{display:flex;flex-direction:column;gap:5px}
+.rk{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(40px,.9fr) auto auto;gap:8px;align-items:center;font-size:11px}
+.rk .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dbe6ee}
+.rk .bar{height:4px;background:rgba(168,216,255,.1)}
+.rk .bar i{display:block;height:100%;background:var(--hud);opacity:.75}
+.rk b{font-weight:500;color:#fff;min-width:28px;text-align:right}
+.rk em{font-style:normal;font-size:10px;min-width:48px;text-align:right;color:var(--muted)}
+.rk em.up{color:#ff6a5e}.rk em.dn{color:#6fd3a0}.rk em.new{color:var(--amber)}
 </style>
 </head>
 <body data-view="map">
@@ -252,7 +421,7 @@ body{background:#04060a}
   <div class="gatecard">
     <div class="emblem" aria-hidden="true"></div>
     <h1 id="gateTitle">SENTINEL</h1>
-    <p class="muted">Memphis, Shelby County and the tri-state grid.<br>MPD reports in 3D, plus the police scanner.</p>
+    <div class="gline"></div><p class="gsub">Memphis · Shelby County · Tennessee / Mississippi / Arkansas</p><p class="gsub2">Incident map · live cameras · police scanner</p>
     <div id="gateStatus" aria-live="polite">Linking to city data</div>
     <div class="btnrow">
       <button id="engage">Engage with sound</button>
@@ -274,6 +443,7 @@ body{background:#04060a}
       <div class="stat" id="chipClock"><span id="clock">--:--:--</span></div>
     </div>
     <div class="tools">
+      <button id="camsBtn">Cam wall</button>
       <button id="refreshBtn" data-sfx="refresh">Refresh</button>
       <button id="soundBtn" aria-pressed="true">Sound on</button>
     </div>
@@ -320,10 +490,27 @@ body{background:#04060a}
         <div class="btnrow"><button id="typesAll">All on</button><button id="typesNone">All off</button></div>
       </section>
 
+      <section class="panel" id="camPanel">
+        <h2 class="cap">Cameras <em id="camCount"></em></h2>
+        <div id="camList"></div>
+        <div class="btnrow"><button id="camAllOn">All on</button><button id="camAllOff">All off</button><button id="camWallBtn">Wall</button></div>
+        <p class="tiny">Hover a pin for a preview. Click it to watch live inside Sentinel. Pins sit near each camera, not exactly on it.</p>
+      </section>
+
       <section class="panel">
         <h2 class="cap">3D map</h2>
         <p class="muted">Right-click and drag (or two fingers on a phone) to tilt and rotate. Use the bar on the map for camera presets and layers: pins, tall beams, heat, and density towers.</p>
         <p class="tiny">Pins are approximate. The city rounds each location to the hundred block.</p>
+      </section>
+
+      <section class="panel" id="patterns">
+        <h2 class="cap">When it happens <em id="peakNote"></em></h2>
+        <div id="hourBox"></div>
+        <h2 class="cap" style="margin-top:16px">Precincts <em>vs previous period</em></h2>
+        <div id="precBox" class="rks"></div>
+        <h2 class="cap" style="margin-top:16px">Streets <em>vs previous period</em></h2>
+        <div id="streetBox" class="rks"></div>
+        <p class="tiny" id="patNote"></p>
       </section>
 
       <section class="panel" id="spark">
@@ -347,11 +534,13 @@ body{background:#04060a}
 
     <section id="mapwrap" aria-label="3D incident map">
       <div id="map"></div>
+      <i class="hud-c tl"></i><i class="hud-c tr"></i><i class="hud-c bl"></i><i class="hud-c br"></i>
       <div id="mbar" role="toolbar" aria-label="Map controls">
         <div class="mgrp" role="group" aria-label="Camera">
           <span class="mlab">Camera</span>
           <button class="mb" data-go="tri" data-sfx="select">Tri-state</button>
           <button class="mb" data-go="shelby" data-sfx="select">Shelby</button>
+          <button class="mb" data-go="sky" data-sfx="select">Skyline</button>
           <button class="mb" data-go="down" data-sfx="select">Downtown</button>
           <button class="mb" data-go="top" data-sfx="select">Top-down</button>
           <button class="mb" data-go="fit" data-sfx="select">Fit pins</button>
@@ -363,9 +552,15 @@ body{background:#04060a}
           <button class="mb" data-layer="beams" aria-pressed="true" data-sfx="none">Beams</button>
           <button class="mb" data-layer="heat" aria-pressed="false" data-sfx="none">Heat</button>
           <button class="mb" data-layer="towers" aria-pressed="false" data-sfx="none">Towers</button>
+          <button class="mb" data-layer="cams" aria-pressed="true" data-sfx="none">Cams</button>
         </div>
       </div>
-      <div id="legend"><span><i style="background:#ff3b3b"></i>Critical</span><span><i style="background:#ff9f1c"></i>Elevated</span><span><i style="background:#4fc3ff"></i>Standard</span><span><i class="sh"></i>Shelby County line</span></div>
+      <div id="camView" hidden>
+        <div class="cvhead"><div><div class="cvt" id="cvTitle"></div><div class="cvs" id="cvSub"></div></div><button id="cvClose">Close</button></div>
+        <div class="cvbody" id="cvBody"></div>
+        <div class="cvfoot" id="cvFoot"></div>
+      </div>
+      <div id="legend"><span><i style="background:#ff5a4d"></i>Critical</span><span><i style="background:#e8a23a"></i>Elevated</span><span><i style="background:#6fb4e0"></i>Standard</span><span><i class="sh"></i>Shelby County line</span></div>
       <div id="coords">35.1495 N · 90.0490 W</div>
       <div class="mapmsg" id="mapMsg" hidden>
         <h3 id="mapMsgTitle">Link down</h3>
@@ -396,6 +591,15 @@ body{background:#04060a}
     <button data-view="radio" aria-pressed="false">Radio</button>
   </nav>
 </div>
+<section id="camsPage" role="dialog" aria-modal="true" aria-labelledby="camsTitle" hidden>
+  <div class="camsin">
+    <div class="camshead"><h2 id="camsTitle">Camera wall</h2><button id="camsClose">Close</button></div>
+    <p class="muted">Every camera that is switched on. Pictures refresh every 10 seconds. Click one to open it live on the map.</p>
+    <div id="camsGrid"></div>
+    <h3 class="camsec">Official sites</h3>
+    <div id="camLinks" class="camlinks"></div>
+  </div>
+</section>
 <div id="toast" role="status" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
@@ -563,7 +767,7 @@ const Sound=(()=>{
 /* ---------- state ---------- */
 const $=(s,r)=>(r||document).querySelector(s);
 const $$=(s,r)=>[...(r||document).querySelectorAll(s)];
-const COL={crit:'#ff3b3b',elev:'#ff9f1c',std:'#4fc3ff'};
+const COL={crit:'#ff5a4d',elev:'#e8a23a',std:'#6fb4e0'};
 const LAB={crit:'Critical',elev:'Elevated',std:'Standard'};
 const SOURCES=[
   {name:'MPD Public Safety Incidents',url:'https://services2.arcgis.com/saWmpKJIUAjyyNVc/arcgis/rest/services/MPD_Public_Safety_Incidents/FeatureServer/0'},
@@ -574,7 +778,7 @@ const FETCH_DAYS=45,MAX_RECORDS=20000,PAGE=1000,REFRESH_MS=15*60*1000;
 const state={
   all:[],view:[],byId:new Map(),anchor:Date.now(),days:14,
   sev:{crit:true,elev:true,std:true},partOne:false,hidden:new Set(),
-  layers:{pins:true,beams:true,heat:false,towers:false},
+  layers:{pins:true,beams:true,heat:false,towers:false,cams:true},
   selected:null,shown:300,basisPref:'auto',basis:'wall',basisInfo:null,
   src:null,lastEdit:null,loading:false,lastLoad:0,diag:{},typeCounts:[],sevCounts:{crit:0,elev:0,std:0},ids:new Set()
 };
@@ -604,11 +808,12 @@ const VIEWS={
   tri:{center:[-89.95,35.05],zoom:8.2,pitch:52,bearing:-6},
   shelby:{bounds:SHELBY_BOUNDS,pitch:56,bearing:-14},
   down:{center:[-90.052,35.146],zoom:15.1,pitch:67,bearing:-30},
-  top:{center:[-89.97,35.18],zoom:9.7,pitch:0,bearing:0}
+  top:{center:[-89.97,35.18],zoom:9.7,pitch:0,bearing:0},
+  sky:{center:[-90.0535,35.1470],zoom:14.6,pitch:70,bearing:38}
 };
 const STATE_ABBR={'47':'TN','28':'MS','05':'AR'};
-const BEAM_H={crit:900,elev:520,std:300};
-const LAYER_IDS={pins:['inc-halo','inc-core'],beams:['inc-beams'],heat:['inc-heat'],towers:['inc-towers']};
+const BEAM_H={crit:520,elev:320,std:190};
+const LAYER_IDS={pins:['inc-halo','inc-core'],beams:['inc-beams'],heat:['inc-heat'],towers:['inc-towers'],cams:[]};
 let map=null,mapReady=false,mapDown=false,popup=null,ringMarker=null,orbitOn=false,orbitRaf=0,tileErrs=0,lastCursor=null;
 
 function buildStyle(){
@@ -637,21 +842,21 @@ function buildStyle(){
       {id:'water',type:'fill',source:'ofm','source-layer':'water',paint:{'fill-color':'#04121d'}},
       {id:'waterway',type:'line',source:'ofm','source-layer':'waterway',minzoom:8,paint:{'line-color':'#08263c','line-width':['interpolate',['linear'],['zoom'],8,.5,14,2.2]}},
       {id:'cnty-veil',type:'fill',source:'counties',filter:['!=',['get','shelby'],true],paint:{'fill-color':'#000000','fill-opacity':.28}},
-      {id:'cnty-shelby-fill',type:'fill',source:'counties',filter:['==',['get','shelby'],true],paint:{'fill-color':'#ffc928','fill-opacity':.06}},
+      {id:'cnty-shelby-fill',type:'fill',source:'counties',filter:['==',['get','shelby'],true],paint:{'fill-color':'#a8d8ff','fill-opacity':.06}},
       {id:'rail',type:'line',source:'ofm','source-layer':'transportation',minzoom:10,filter:cls('rail','transit'),paint:{'line-color':'#2a3947','line-width':1,'line-dasharray':[3,2]}},
       {id:'road-minor',type:'line',source:'ofm','source-layer':'transportation',minzoom:11.5,filter:cls('minor','service','track'),layout:{'line-cap':'round'},paint:{'line-color':'#1f2d3b','line-width':['interpolate',['exponential',1.5],['zoom'],11.5,.3,16,3.5]}},
       {id:'road-mid',type:'line',source:'ofm','source-layer':'transportation',minzoom:9,filter:cls('secondary','tertiary'),layout:{'line-cap':'round'},paint:{'line-color':'#41586c','line-width':['interpolate',['exponential',1.5],['zoom'],9,.4,16,5]}},
-      {id:'road-major',type:'line',source:'ofm','source-layer':'transportation',minzoom:6,filter:cls('motorway','trunk','primary'),layout:{'line-cap':'round'},paint:{'line-color':'#c79b1d','line-opacity':.85,'line-width':['interpolate',['exponential',1.5],['zoom'],6,.5,12,1.8,16,7]}},
+      {id:'road-major',type:'line',source:'ofm','source-layer':'transportation',minzoom:6,filter:cls('motorway','trunk','primary'),layout:{'line-cap':'round'},paint:{'line-color':'#6f93ad','line-opacity':.9,'line-width':['interpolate',['exponential',1.5],['zoom'],6,.5,12,1.8,16,7]}},
       {id:'state-line',type:'line',source:'ofm','source-layer':'boundary',filter:['==',['get','admin_level'],4],paint:{'line-color':'#8aa2b4','line-width':1.3,'line-dasharray':[4,3],'line-opacity':.8}},
       {id:'cnty-line',type:'line',source:'counties',filter:['!=',['get','shelby'],true],paint:{'line-color':'#5b7a90','line-width':1,'line-dasharray':[3,2],'line-opacity':.8}},
-      {id:'cnty-glow',type:'line',source:'counties',filter:['==',['get','shelby'],true],paint:{'line-color':'#ffc928','line-width':9,'line-blur':7,'line-opacity':.38}},
-      {id:'cnty-shelby',type:'line',source:'counties',filter:['==',['get','shelby'],true],paint:{'line-color':'#ffc928','line-width':['interpolate',['linear'],['zoom'],6,1.4,12,2.8]}},
+      {id:'cnty-glow',type:'line',source:'counties',filter:['==',['get','shelby'],true],paint:{'line-color':'#a8d8ff','line-width':9,'line-blur':7,'line-opacity':.38}},
+      {id:'cnty-shelby',type:'line',source:'counties',filter:['==',['get','shelby'],true],paint:{'line-color':'#a8d8ff','line-width':['interpolate',['linear'],['zoom'],6,1.4,12,2.8]}},
       {id:'inc-heat',type:'heatmap',source:'inc',layout:{visibility:'none'},paint:{
         'heatmap-weight':['match',['get','sev'],'crit',1,'elev',.6,.35],
         'heatmap-intensity':['interpolate',['linear'],['zoom'],8,.6,14,1.6],
         'heatmap-radius':['interpolate',['linear'],['zoom'],8,10,12,22,15,38],
         'heatmap-opacity':.85,
-        'heatmap-color':['interpolate',['linear'],['heatmap-density'],0,'rgba(0,0,0,0)',.2,'rgba(60,90,120,.5)',.45,'rgba(111,160,190,.7)',.7,'rgba(255,201,40,.85)',1,'rgba(255,59,59,.95)']
+        'heatmap-color':['interpolate',['linear'],['heatmap-density'],0,'rgba(0,0,0,0)',.2,'rgba(60,90,120,.5)',.45,'rgba(111,160,190,.7)',.7,'rgba(168,216,255,.85)',1,'rgba(255,59,59,.95)']
       }},
       {id:'bldg',type:'fill-extrusion',source:'ofm','source-layer':'building',minzoom:13,paint:{
         'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],6],0,'#141c26',40,'#243547',120,'#3b5469',250,'#6384a0'],
@@ -659,7 +864,7 @@ function buildStyle(){
         'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
         'fill-extrusion-opacity':.92,'fill-extrusion-vertical-gradient':true}},
       {id:'inc-towers',type:'fill-extrusion',source:'grid',layout:{visibility:'none'},paint:{
-        'fill-extrusion-color':['interpolate',['linear'],['get','t'],0,'#27465e',.35,'#8a7a2a',.6,'#ffc928',.85,'#ff7a1a',1,'#ff3b3b'],
+        'fill-extrusion-color':['interpolate',['linear'],['get','t'],0,'#27465e',.35,'#3f6a8a',.6,'#a8d8ff',.85,'#e8a23a',1,'#ff5a4d'],
         'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,'fill-extrusion-opacity':.82,'fill-extrusion-vertical-gradient':true}},
       {id:'inc-beams',type:'fill-extrusion',source:'beams',paint:{
         'fill-extrusion-color':sevColor,'fill-extrusion-height':['get','h'],'fill-extrusion-base':0,
@@ -670,8 +875,9 @@ function buildStyle(){
       {id:'inc-core',type:'circle',source:'inc',layout:{'circle-sort-key':sevR(3,2,1)},paint:{
         'circle-radius':['interpolate',['linear'],['zoom'],8,sevR(3.2,2.6,2.1),12,sevR(6,5,4.2),16,sevR(10,8.5,7)],
         'circle-color':sevColor,'circle-opacity':.95,'circle-stroke-color':'#05070a','circle-stroke-width':1}},
+      {id:'poi',type:'symbol',source:'ofm','source-layer':'poi',minzoom:15.2,filter:['has','name'],layout:{'text-field':['coalesce',['get','name:latin'],['get','name']],'text-font':['Noto Sans Regular'],'text-size':10.5,'text-anchor':'top','text-offset':[0,.5],'text-max-width':8,'symbol-sort-key':['coalesce',['get','rank'],99]},paint:{'text-color':'#c3d3df','text-halo-color':'#05070a','text-halo-width':1.3}},
       {id:'state-label',type:'symbol',source:'clabels',filter:['==',['get','kind'],'state'],maxzoom:9.5,layout:{'text-field':['get','label'],'text-font':fontB,'text-size':26,'text-letter-spacing':.6,'text-allow-overlap':true},paint:{'text-color':'#34495a','text-opacity':.7}},
-      {id:'county-label',type:'symbol',source:'clabels',filter:['==',['get','kind'],'county'],maxzoom:11.5,layout:{'text-field':['get','label'],'text-font':fontB,'text-size':['interpolate',['linear'],['zoom'],6,10,11,13],'text-letter-spacing':.14,'text-allow-overlap':false},paint:{'text-color':['case',['==',['get','shelby'],true],'#ffc928','#8aa2b4'],'text-halo-color':'#05070a','text-halo-width':1.6}},
+      {id:'county-label',type:'symbol',source:'clabels',filter:['==',['get','kind'],'county'],maxzoom:11.5,layout:{'text-field':['get','label'],'text-font':fontB,'text-size':['interpolate',['linear'],['zoom'],6,10,11,13],'text-letter-spacing':.14,'text-allow-overlap':false},paint:{'text-color':['case',['==',['get','shelby'],true],'#a8d8ff','#8aa2b4'],'text-halo-color':'#05070a','text-halo-width':1.6}},
       {id:'place-city',type:'symbol',source:'ofm','source-layer':'place',filter:cls('city','town'),layout:{'text-field':['coalesce',['get','name:latin'],['get','name']],'text-font':fontB,'text-size':['interpolate',['linear'],['zoom'],6,10,12,17],'text-transform':'uppercase','text-letter-spacing':.1,'text-max-width':8},paint:{'text-color':'#d3dde5','text-halo-color':'#05070a','text-halo-width':1.7}},
       {id:'place-small',type:'symbol',source:'ofm','source-layer':'place',minzoom:11,filter:cls('village','suburb','neighbourhood','hamlet'),layout:{'text-field':['coalesce',['get','name:latin'],['get','name']],'text-font':font,'text-size':11,'text-max-width':7},paint:{'text-color':'#8199aa','text-halo-color':'#05070a','text-halo-width':1.4}},
       {id:'road-label',type:'symbol',source:'ofm','source-layer':'transportation_name',minzoom:13.5,layout:{'symbol-placement':'line','text-field':['coalesce',['get','name:latin'],['get','name']],'text-font':font,'text-size':10,'text-letter-spacing':.05},paint:{'text-color':'#6a8294','text-halo-color':'#05070a','text-halo-width':1.3}}
@@ -719,6 +925,7 @@ function markReady(){
   if(mapReady||!map)return;
   mapReady=true;
   applyLayers();
+  setCams();
   loadCounties();
   drawMap();
   setTimeout(()=>toast('Right-click and drag, or use two fingers, to tilt and rotate the map.'),1800);
@@ -754,6 +961,7 @@ function applyLayers(){
   if(!mapReady)return;
   for(const k of Object.keys(LAYER_IDS))for(const id of LAYER_IDS[k]){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',state.layers[k]?'visible':'none');}
   $$('#mbar [data-layer]').forEach(b=>b.setAttribute('aria-pressed',String(!!state.layers[b.dataset.layer])));
+  applyCams();
 }
 function sq(lon,lat,dx,dy){return[[[lon-dx,lat-dy],[lon+dx,lat-dy],[lon+dx,lat+dy],[lon-dx,lat+dy],[lon-dx,lat-dy]]];}
 function drawMap(){
@@ -763,7 +971,7 @@ function drawMap(){
   for(const r of state.view){
     if(!r.mapped)continue;
     pins.push({type:'Feature',properties:{id:r.id,sev:r.sev},geometry:{type:'Point',coordinates:[r.lon,r.lat]}});
-    if(nb<1800){nb++;beams.push({type:'Feature',properties:{id:r.id,sev:r.sev,h:BEAM_H[r.sev]},geometry:{type:'Polygon',coordinates:sq(r.lon,r.lat,.00045,.0004)}});}
+    if(nb<1800){nb++;beams.push({type:'Feature',properties:{id:r.id,sev:r.sev,h:BEAM_H[r.sev]},geometry:{type:'Polygon',coordinates:sq(r.lon,r.lat,.0003,.00027)}});}
     const k=Math.floor(r.lon/CX)+','+Math.floor(r.lat/CY);cells.set(k,(cells.get(k)||0)+1);
   }
   let maxN=1;for(const n of cells.values())if(n>maxN)maxN=n;
@@ -820,6 +1028,43 @@ let rafId=0;
 function schedule(){if(rafId)return;rafId=requestAnimationFrame(()=>{rafId=0;render();});}
 function render(){recompute();drawMap();drawFeed();drawSide();drawBar();}
 
+
+/* ---------- patterns: time of day, precinct and street rankings ---------- */
+function passes(r){return state.sev[r.sev]&&!(state.partOne&&r.part!==1)&&!state.hidden.has(r.key);}
+function localParts(ms){const l=state.basis==='wall'?ms:ms+tzOffsetMs(ms,CHI);const d=new Date(l);return{h:d.getUTCHours(),w:d.getUTCDay()};}
+function hourLabel(h){return h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM';}
+function rankHtml(rows,cur,prev,prevOk){
+  const max=Math.max(1,...rows.map(r=>r[1]));
+  return rows.map(([k,n])=>{
+    let ch='';
+    if(prevOk){const p=prev.get(k)||0;if(p===0)ch='<em class="new">new</em>';else{const pc=Math.round((n-p)/p*100);ch=`<em class="${pc>0?'up':pc<0?'dn':''}">${pc>0?'▲':pc<0?'▼':'–'} ${Math.abs(pc)}%</em>`;}}
+    return `<div class="rk"><span class="n" title="${esc(k)}">${esc(k)}</span><span class="bar"><i style="width:${(n/max*100).toFixed(0)}%"></i></span><b>${n.toLocaleString()}</b>${ch}</div>`;
+  }).join('')||'<div class="muted">Nothing in this window.</div>';
+}
+function tally(list,keyFn){const m=new Map();for(const r of list){const k=keyFn(r);if(!k)continue;m.set(k,(m.get(k)||0)+1);}return m;}
+function drawPatterns(){
+  if(!$('#hourBox'))return;
+  const cur=state.view,span=state.days*864e5,a=state.anchor;
+  let minT=Infinity;for(const r of state.all)if(r.t<minT)minT=r.t;
+  const prevOk=a-2*span>=minT;
+  const prev=prevOk?state.all.filter(r=>r.t>=a-2*span&&r.t<a-span&&passes(r)):[];
+  const hrs=new Array(24).fill(0),dow=new Array(7).fill(0);
+  for(const r of cur){const p=localParts(r.t);hrs[p.h]++;dow[p.w]++;}
+  const hmax=Math.max(1,...hrs),peak=hrs.indexOf(Math.max(...hrs));
+  const W=268,H=74,bw=W/24;
+  const bars=hrs.map((v,i)=>{const h=Math.round(v/hmax*(H-14));const hot=i===peak;return`<rect x="${(i*bw+1).toFixed(1)}" y="${H-h}" width="${(bw-2).toFixed(1)}" height="${h}" fill="${hot?'var(--hud)':'currentColor'}" opacity="${hot?1:.55}"><title>${hourLabel(i)}: ${v}</title></rect>`;}).join('');
+  const tl=[0,6,12,18,23].map(i=>`<text x="${(i*bw+bw/2).toFixed(1)}" y="${H+11}" text-anchor="middle" font-size="8.5" fill="var(--muted)">${i===0?'12a':i===23?'11p':i===12?'12p':(i<12?i+'a':(i-12)+'p')}</text>`).join('');
+  const dmax=Math.max(1,...dow),dn=['S','M','T','W','T','F','S'],dpk=dow.indexOf(Math.max(...dow));
+  const dbars=dow.map((v,i)=>{const w=(W-6*4)/7,h=Math.round(v/dmax*22);return`<g><rect x="${(i*(w+4)).toFixed(1)}" y="${26-h}" width="${w.toFixed(1)}" height="${h}" fill="${i===dpk?'var(--hud)':'currentColor'}" opacity="${i===dpk?1:.55}"/><text x="${(i*(w+4)+w/2).toFixed(1)}" y="37" text-anchor="middle" font-size="8.5" fill="var(--muted)">${dn[i]}</text><title>${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i]}: ${v}</title></g>`;}).join('');
+  $('#hourBox').innerHTML=cur.length?`<svg viewBox="0 0 ${W} ${H+14}" style="color:var(--hud);width:100%;height:auto" role="img" aria-label="Incidents by hour of day"><line x1="0" y1="${H+.5}" x2="${W}" y2="${H+.5}" stroke="#2c4254"/>${bars}${tl}</svg><svg viewBox="0 0 ${W} 40" style="color:var(--hud);width:100%;height:auto;margin-top:8px" role="img" aria-label="Incidents by weekday">${dbars}</svg>`:'<div class="muted">No incidents in this window.</div>';
+  $('#peakNote').textContent=cur.length?`peak ${hourLabel(peak)}`:'';
+  const pc=[...tally(cur,r=>r.prec?titleCase(r.prec):'').entries()].sort((x,y)=>y[1]-x[1]).slice(0,6);
+  const sc=[...tally(cur,r=>r.street?titleCase(r.street):'').entries()].sort((x,y)=>y[1]-x[1]).slice(0,8);
+  $('#precBox').innerHTML=rankHtml(pc,cur,tally(prev,r=>r.prec?titleCase(r.prec):''),prevOk);
+  $('#streetBox').innerHTML=rankHtml(sc,cur,tally(prev,r=>r.street?titleCase(r.street):''),prevOk);
+  $('#patNote').textContent=prevOk?`Change compares the same filters with the ${state.days} days before this window.`:'Change is not shown: the loaded history is too short to compare. Pick a shorter window.';
+}
+
 function popupHtml(r){
   const place=placeText(r),note=plainNote(r),part=partLabel(r.part);
   const rows=[];
@@ -863,7 +1108,7 @@ function drawSide(){
     $('#windowNote').textContent=`${a} – ${b}`;
     $('#rangeNote').textContent=`Showing ${a} to ${b}. The city has published nothing newer than ${b}. Windows count back from that date, not from today.`;
   }
-  drawSpark();drawDiag();
+  drawSpark();drawDiag();drawPatterns();
 }
 function drawSpark(){
   const days=state.days,counts=new Map();
@@ -1071,6 +1316,166 @@ function tune(e){
   /* if the pop-up was blocked, the link's normal new-tab behavior takes over */
 }
 
+/* ---------- live cameras ---------- */
+const NETS=[
+  {name:'TDOT SmartWay',url:'https://smartway.tn.gov/'},
+  {name:'MDOT Traffic (Mississippi)',url:'https://mdottraffic.com/'},
+  {name:'iDriveArkansas',url:'https://www.idrivearkansas.com/'},
+  {name:'Local 24 weather cameras',url:'https://www.localmemphis.com/weather-cameras'},
+  {name:'WREG',url:'https://wreg.com/'},
+  {name:'WMC Action News 5',url:'https://www.wmcactionnews5.com/'},
+  {name:'FOX13 Memphis',url:'https://www.fox13memphis.com/'}
+];
+const GB='Mississippi River bridges',GD='Downtown Memphis',GS='South Memphis',GW='West Memphis, Arkansas',GL='Local 24 weather cameras';
+/* k: 't' = TDOT SmartWay (video stream + snapshot), 'w' = Local 24 live player. Pins are approximate. */
+const CAMS=[
+  {id:'t3407',g:GB,k:'t',c:'R4_009',t:'I-40 · Hernando de Soto Bridge, west side',lon:-90.0795,lat:35.1565},
+  {id:'t3408',g:GB,k:'t',c:'R4_010',t:'I-40 · Hernando de Soto Bridge, east end',lon:-90.0655,lat:35.1560},
+  {id:'t3406',g:GB,k:'t',c:'R4_008',t:'I-40 · west of the river (Arkansas)',lon:-90.1000,lat:35.1600},
+  {id:'t3514',g:GB,k:'t',c:'R4_020',t:'I-55 · Memphis & Arkansas Bridge, south end',lon:-90.0850,lat:35.1170},
+  {id:'t3513',g:GB,k:'t',c:'R4_019',t:'I-55 · Memphis & Arkansas Bridge, state line',lon:-90.0790,lat:35.1180},
+  {id:'t3512',g:GB,k:'t',c:'R4_018',t:'I-55 · Memphis & Arkansas Bridge, north end',lon:-90.0715,lat:35.1190},
+  {id:'t4219',g:GD,k:'t',c:'R4_021',t:'I-55 · Crump Blvd / Riverside',lon:-90.0685,lat:35.1245},
+  {id:'t3524',g:GD,k:'t',c:'R4_070',t:'I-55 · at 3rd Street',lon:-90.0600,lat:35.1150},
+  {id:'t3505',g:GD,k:'t',c:'R4_011',t:'I-40 · Riverside Drive',lon:-90.0630,lat:35.1570},
+  {id:'t3506',g:GD,k:'t',c:'R4_012',t:'I-40 · Danny Thomas Blvd',lon:-90.0455,lat:35.1575},
+  {id:'t3507',g:GD,k:'t',c:'R4_013',t:'I-40 · I-240 junction',lon:-90.0370,lat:35.1690},
+  {id:'t3273',g:GD,k:'t',c:'R4_032',t:'I-40 / I-240 · Midtown junction',lon:-90.0075,lat:35.1640},
+  {id:'t4233',g:GS,k:'t',c:'R4_075',t:'I-55 · Elvis Presley Blvd (US 51)',lon:-90.0300,lat:35.0440},
+  {id:'t4226',g:GW,k:'t',c:'R4_028',t:'I-40 / I-55 · western junction',lon:-90.1880,lat:35.1290},
+  {id:'t4225',g:GW,k:'t',c:'R4_027',t:'I-40 · west of the I-55 junction',lon:-90.2050,lat:35.1330},
+  {id:'t3401',g:GW,k:'t',c:'R4_003',t:'I-40 / I-55 · eastern junction',lon:-90.1520,lat:35.1480},
+  {id:'t3402',g:GW,k:'t',c:'R4_004',t:'I-40 · Mound City Road',lon:-90.1300,lat:35.1540},
+  {id:'w1',g:GL,k:'w',u:'f0d209c0c540d41c72ba981c02175855',t:'Southern College of Optometry, Midtown',lon:-89.9915,lat:35.1403},
+  {id:'w2',g:GL,k:'w',u:'2ebd18e6fa4f6eddfefa9368d3d93301',t:'Hope Church, Cordova',lon:-89.7800,lat:35.1500},
+  {id:'w3',g:GL,k:'w',u:'7e8dfb7e5416ebaed5aca0df83469271',t:'I-40 / I-240 flyover at Royal Furniture, Northeast Memphis',lon:-89.9600,lat:35.1800},
+  {id:'w4',g:GL,k:'w',u:'1d2d746964fc41bb352ed5ec03165298',t:'Royal Furniture, East Memphis',lon:-89.8830,lat:35.1100}
+];
+const camOff=new Set();
+let camMarkers=new Map(),camHover=null,curCam=null,camToken=0,hlsObj=null,snapTimer=0,wallTimer=0;
+const HOSTS=[4,1,2,3,5,6],hostCache={};
+const snapUrl=c=>`https://tnsnapshots.com/${c.c}.png?t=${Date.now()}`;
+function openSite(url,e){
+  let w=null;
+  try{w=window.open(url,'sentinel-cam','popup=yes,width=1180,height=780');}catch(err){}
+  if(w){if(e)e.preventDefault();try{w.focus();}catch(err){}}
+}
+function camVisible(c){return state.layers.cams&&!camOff.has(c.id);}
+function applyCams(){
+  for(const c of CAMS){const m=camMarkers.get(c.id);if(m)m.getElement().style.display=camVisible(c)?'':'none';}
+  $$('#camList .type').forEach(b=>b.setAttribute('aria-pressed',String(!camOff.has(b.dataset.cam))));
+  const n=CAMS.filter(c=>!camOff.has(c.id)).length;const el=$('#camCount');if(el)el.textContent=`${n} of ${CAMS.length} on`;
+  if(curCam&&!camVisible(curCam))closeCamView();
+}
+function hoverHtml(c){
+  const img=c.k==='t'?`<img src="${snapUrl(c)}" alt="" width="200" height="150">`:'<div class="hv-live">LIVE VIDEO</div>';
+  return `<div class="hv">${img}<div class="hv-t">${esc(c.t)}</div><div class="hv-s">Click to watch live</div></div>`;
+}
+function setCams(){
+  if(!map)return;
+  camMarkers.forEach(m=>m.remove());camMarkers=new Map();
+  for(const c of CAMS){
+    const el=document.createElement('button');el.className='camPin';el.type='button';
+    el.setAttribute('aria-label','Camera: '+c.t);el.innerHTML='<i></i>';
+    el.addEventListener('mouseenter',()=>{
+      if(matchMedia('(hover:none)').matches)return;
+      if(camHover){camHover.remove();camHover=null;}
+      camHover=new maplibregl.Popup({closeButton:false,closeOnClick:false,offset:16,className:'camhover',maxWidth:'220px'}).setLngLat([c.lon,c.lat]).setHTML(hoverHtml(c)).addTo(map);
+    });
+    el.addEventListener('mouseleave',()=>{if(camHover){camHover.remove();camHover=null;}});
+    el.addEventListener('click',ev=>{ev.stopPropagation();if(camHover){camHover.remove();camHover=null;}Sound.play('select');openCamView(c);});
+    camMarkers.set(c.id,new maplibregl.Marker({element:el,anchor:'center'}).setLngLat([c.lon,c.lat]).addTo(map));
+  }
+  applyCams();
+}
+function buildCamPanel(){
+  let h='',g='';
+  for(const c of CAMS){
+    if(c.g!==g){g=c.g;h+=`<div class="camgrp">${esc(g)}</div>`;}
+    h+=`<button class="type" data-cam="${c.id}" aria-pressed="true" data-sfx="none"><span>${esc(c.t)}</span></button>`;
+  }
+  $('#camList').innerHTML=h;
+}
+function loadHls(){
+  if(window.Hls)return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const add=(src,fail)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=fail;document.head.appendChild(s);};
+    add('https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.8/hls.min.js',()=>add('https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js',()=>rej(new Error('hls'))));
+  });
+}
+function findStream(c){
+  const hosts=hostCache[c.c]?[hostCache[c.c]]:HOSTS;
+  return new Promise(resolve=>{
+    let left=hosts.length,done=false;
+    hosts.forEach(n=>{
+      const url=`https://mcleansfs${n}.us-east-1.skyvdn.com/rtplive/${c.c}/playlist.m3u8`;
+      const ctrl=new AbortController(),to=setTimeout(()=>ctrl.abort(),4000);
+      fetch(url,{signal:ctrl.signal}).then(r=>{if(r.ok&&!done){done=true;hostCache[c.c]=n;resolve(url);}}).catch(()=>{}).finally(()=>{clearTimeout(to);if(--left===0&&!done)resolve(null);});
+    });
+  });
+}
+function stopCam(){
+  camToken++;
+  if(hlsObj){try{hlsObj.destroy();}catch(e){}hlsObj=null;}
+  clearInterval(snapTimer);
+  const b=$('#cvBody');if(b)b.innerHTML='';
+}
+function closeCamView(){stopCam();curCam=null;const v=$('#camView');if(v)v.hidden=true;}
+async function openCamView(c){
+  stopCam();curCam=c;
+  $('#camView').hidden=false;$('#cvTitle').textContent=c.t;$('#cvSub').textContent=c.g+' · pin is approximate';
+  const body=$('#cvBody'),foot=$('#cvFoot');
+  if(c.k==='w'){
+    body.innerHTML=`<iframe src="https://api.wetmet.net/widgets/stream/frame.php?uid=${c.u}" allow="autoplay; fullscreen" allowfullscreen title="${esc(c.t)}"></iframe>`;
+    foot.textContent='Live video from Local 24 (WATN)';return;
+  }
+  const token=camToken;
+  const img=document.createElement('img');img.alt=c.t;img.src=snapUrl(c);body.appendChild(img);
+  const tag=document.createElement('span');tag.className='cvtag';tag.textContent='SNAPSHOT';body.appendChild(tag);
+  snapTimer=setInterval(()=>{img.src=snapUrl(c);},10000);
+  foot.textContent='Connecting to live video…';
+  const url=await findStream(c);
+  if(token!==camToken)return;
+  if(!url){foot.textContent='Live video is not available right now. This picture refreshes every 10 seconds. Video: TDOT SmartWay.';return;}
+  const v=document.createElement('video');v.muted=true;v.autoplay=true;v.playsInline=true;v.controls=true;v.style.display='none';body.appendChild(v);
+  const live=()=>{if(token!==camToken)return;v.style.display='block';img.remove();clearInterval(snapTimer);tag.textContent='LIVE';tag.classList.add('on');foot.textContent='Live video · TDOT SmartWay';};
+  const fail=()=>{if(token!==camToken)return;foot.textContent='Live video stopped. This picture refreshes every 10 seconds. Video: TDOT SmartWay.';};
+  v.addEventListener('playing',live,{once:true});
+  try{
+    if(v.canPlayType('application/vnd.apple.mpegurl')){v.src=url;v.play().catch(()=>{});}
+    else{
+      await loadHls();if(token!==camToken)return;
+      if(!window.Hls||!Hls.isSupported()){fail();return;}
+      hlsObj=new Hls({lowLatencyMode:true});
+      hlsObj.on(Hls.Events.ERROR,(e,d)=>{if(d&&d.fatal)fail();});
+      hlsObj.loadSource(url);hlsObj.attachMedia(v);v.play().catch(()=>{});
+    }
+  }catch(e){fail();}
+}
+function focusCam(c){
+  if(isMobile())setView('map');
+  setOrbit(false);
+  if(map&&mapReady)map.flyTo({center:[c.lon,c.lat],zoom:Math.max(map.getZoom(),14.4),pitch:Math.max(map.getPitch(),55),duration:1400,essential:true});
+  openCamView(c);
+}
+function buildCamsPage(){
+  const on=CAMS.filter(c=>!camOff.has(c.id));
+  let h='',g='';
+  for(const c of on){
+    if(c.g!==g){if(g)h+='</div>';g=c.g;h+=`<h3 class="camsec">${esc(g)}</h3><div class="wall">`;}
+    const pic=c.k==='t'?`<img data-snap="${c.c}" src="${snapUrl(c)}" alt="" loading="lazy">`:'<div class="wlive">LIVE VIDEO</div>';
+    h+=`<button class="walltile" data-cam="${c.id}">${pic}<span>${esc(c.t)}</span></button>`;
+  }
+  if(g)h+='</div>';
+  $('#camsGrid').innerHTML=h||'<p class="muted">All cameras are switched off. Turn some on in the Cameras panel.</p>';
+  $('#camLinks').innerHTML=NETS.map(n=>`<a class="btn camgo" href="${esc(n.url)}" target="_blank" rel="noopener">${esc(n.name)} ↗</a>`).join('');
+}
+function toggleCams(on){
+  const p=$('#camsPage');p.hidden=!on;
+  clearInterval(wallTimer);
+  if(on){buildCamsPage();wallTimer=setInterval(()=>{$$('#camsGrid img[data-snap]').forEach(i=>{i.src=`https://tnsnapshots.com/${i.dataset.snap}.png?t=${Date.now()}`;});},10000);}
+}
+
 /* ---------- wiring ---------- */
 function wire(){
   document.addEventListener('click',e=>{
@@ -1105,6 +1510,25 @@ function wire(){
   $$('#mbar [data-layer]').forEach(b=>b.addEventListener('click',()=>{
     const k=b.dataset.layer;state.layers[k]=!state.layers[k];Sound.play(state.layers[k]?'on':'off');applyLayers();
   }));
+  buildCamPanel();
+  $('#camsBtn').addEventListener('click',()=>toggleCams(true));
+  $('#camWallBtn').addEventListener('click',()=>toggleCams(true));
+  $('#camsClose').addEventListener('click',()=>toggleCams(false));
+  $('#cvClose').addEventListener('click',closeCamView);
+  $('#camAllOn').addEventListener('click',()=>{camOff.clear();Sound.play('on');applyCams();});
+  $('#camAllOff').addEventListener('click',()=>{CAMS.forEach(c=>camOff.add(c.id));Sound.play('off');applyCams();});
+  $('#camList').addEventListener('click',e=>{
+    const b=e.target.closest('.type');if(!b)return;
+    const id=b.dataset.cam;if(camOff.has(id))camOff.delete(id);else camOff.add(id);
+    Sound.play(camOff.has(id)?'off':'on');applyCams();
+  });
+  $('#camsPage').addEventListener('click',e=>{
+    const tile=e.target.closest('.walltile');
+    if(tile){const c=CAMS.find(x=>x.id===tile.dataset.cam);if(c){Sound.play('select');toggleCams(false);focusCam(c);}return;}
+    const a=e.target.closest('a.camgo');if(a){openSite(a.href,e);return;}
+    if(e.target.id==='camsPage')toggleCams(false);
+  });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('#camsPage').hidden)toggleCams(false);else if(!$('#camView').hidden)closeCamView();}});
   $('#refreshBtn').addEventListener('click',()=>load(true));
   $('#retryBtn').addEventListener('click',()=>{if(mapDown){location.reload();return;}$('#mapMsg').hidden=true;load(true);});
   $('#tune').addEventListener('click',tune);
